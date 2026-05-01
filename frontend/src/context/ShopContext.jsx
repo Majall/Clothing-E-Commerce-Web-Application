@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { products as localProducts } from '../assets/frontend_assets/assets'
+import { featureFlags } from '../config/features'
 import { api } from '../services/api'
 import { ShopContext } from './context'
 
@@ -7,6 +8,11 @@ const CART_STORAGE_KEY = 'shop_cart_v1'
 const ORDERS_STORAGE_KEY = 'shop_orders_v1'
 const USER_STORAGE_KEY = 'shop_user_v1'
 const COUPON_STORAGE_KEY = 'shop_coupon_v1'
+const ADDRESS_STORAGE_KEY = 'shop_addresses_v1'
+const WISHLIST_STORAGE_KEY = 'shop_wishlist_v1'
+const PAYMENT_STORAGE_KEY = 'shop_payment_methods_v1'
+const NOTIFICATION_STORAGE_KEY = 'shop_notifications_v1'
+const LOYALTY_STORAGE_KEY = 'shop_loyalty_points_v1'
 const FREE_SHIPPING_THRESHOLD = 500
 const STANDARD_SHIPPING_FEE = 40
 const AVAILABLE_COUPONS = [
@@ -27,11 +33,21 @@ const parseStored = (key, fallback) => {
 export const ShopProvider = ({ children }) => {
   const [products, setProducts] = useState([])
   const [cart, setCart] = useState(() => parseStored(CART_STORAGE_KEY, {}))
-  const [orders, setOrders] = useState(() => parseStored(ORDERS_STORAGE_KEY, []))
+  const [localOrders, setLocalOrders] = useState(() => parseStored(ORDERS_STORAGE_KEY, []))
+  const [remoteOrders, setRemoteOrders] = useState([])
   const [user, setUser] = useState(() => parseStored(USER_STORAGE_KEY, null))
   const [coupon, setCoupon] = useState(() => parseStored(COUPON_STORAGE_KEY, null))
+  const [addresses, setAddresses] = useState(() => parseStored(ADDRESS_STORAGE_KEY, []))
+  const [wishlistItems, setWishlistItems] = useState(() => parseStored(WISHLIST_STORAGE_KEY, []))
+  const [paymentMethods, setPaymentMethods] = useState(() => parseStored(PAYMENT_STORAGE_KEY, []))
+  const [notifications, setNotifications] = useState(() => parseStored(NOTIFICATION_STORAGE_KEY, []))
+  const [loyaltyPoints, setLoyaltyPoints] = useState(() => parseStored(LOYALTY_STORAGE_KEY, 0))
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [ordersLoading, setOrdersLoading] = useState(false)
+  const [ordersError, setOrdersError] = useState('')
+
+  const hasApiSession = Boolean(api.isEnabled && user?.token)
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -54,8 +70,10 @@ export const ShopProvider = ({ children }) => {
   }, [cart])
 
   useEffect(() => {
-    localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders))
-  }, [orders])
+    if (!hasApiSession) {
+      localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(localOrders))
+    }
+  }, [localOrders, hasApiSession])
 
   useEffect(() => {
     if (user) {
@@ -72,6 +90,16 @@ export const ShopProvider = ({ children }) => {
     }
     localStorage.removeItem(COUPON_STORAGE_KEY)
   }, [coupon])
+
+  useEffect(() => {
+    if (!hasApiSession) {
+      localStorage.setItem(ADDRESS_STORAGE_KEY, JSON.stringify(addresses))
+      localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(wishlistItems))
+      localStorage.setItem(PAYMENT_STORAGE_KEY, JSON.stringify(paymentMethods))
+      localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(notifications))
+      localStorage.setItem(LOYALTY_STORAGE_KEY, JSON.stringify(loyaltyPoints))
+    }
+  }, [addresses, wishlistItems, paymentMethods, notifications, loyaltyPoints, hasApiSession])
 
   const cartItems = useMemo(
     () =>
@@ -124,6 +152,13 @@ export const ShopProvider = ({ children }) => {
 
   const total = useMemo(() => Math.max(subtotal - discount + shipping, 0), [subtotal, discount, shipping])
 
+  const orders = useMemo(
+    () => (hasApiSession ? remoteOrders : localOrders),
+    [hasApiSession, remoteOrders, localOrders],
+  )
+
+  const defaultAddress = useMemo(() => addresses.find((item) => item.isDefault), [addresses])
+
   const addToCart = (productId, size, quantity = 1) => {
     if (!size || quantity < 1) return
     const sku = `${productId}|${size}`
@@ -171,6 +206,361 @@ export const ShopProvider = ({ children }) => {
 
   const removeCoupon = () => setCoupon(null)
 
+  const refreshProfile = useCallback(async () => {
+    if (!hasApiSession) return null
+
+    try {
+      const profile = await api.getProfile()
+      if (profile) {
+        setUser((prev) => (prev ? { ...prev, ...profile } : profile))
+      }
+      return profile
+    } catch {
+      return null
+    }
+  }, [hasApiSession])
+
+  const updateProfile = async ({ name, email, phone }) => {
+    if (!hasApiSession) {
+      const updated = { ...(user || {}), name, email, phone }
+      setUser(updated)
+      return { ok: true, user: updated }
+    }
+
+    try {
+      const updated = await api.updateProfile({ name, email, phone })
+      if (updated) {
+        setUser((prev) => (prev ? { ...prev, ...updated } : updated))
+      }
+      return { ok: true, user: updated }
+    } catch {
+      return { ok: false, message: 'Unable to update profile. Please try again.' }
+    }
+  }
+
+  const loadOrders = useCallback(async () => {
+    if (!hasApiSession) return
+    setOrdersLoading(true)
+    setOrdersError('')
+
+    try {
+      const remote = await api.getOrders()
+      setRemoteOrders(remote)
+    } catch {
+      setOrdersError('Unable to load order history from the server.')
+    } finally {
+      setOrdersLoading(false)
+    }
+  }, [hasApiSession])
+
+  const loadAddresses = useCallback(async () => {
+    if (!hasApiSession) {
+      setAddresses(parseStored(ADDRESS_STORAGE_KEY, []))
+      return
+    }
+
+    try {
+      const remote = await api.getAddresses()
+      setAddresses(remote)
+    } catch {
+      setAddresses([])
+    }
+  }, [hasApiSession])
+
+  const addAddress = async (payload) => {
+    if (hasApiSession) {
+      try {
+        const created = await api.createAddress(payload)
+        if (created) {
+          setAddresses((prev) => {
+            const next = created.isDefault
+              ? prev.map((item) => ({ ...item, isDefault: false }))
+              : prev
+            return [created, ...next]
+          })
+        }
+        return { ok: true, address: created }
+      } catch {
+        return { ok: false, message: 'Unable to save address. Please try again.' }
+      }
+    }
+
+    const id = `addr-${Date.now()}`
+    setAddresses((prev) => {
+      const next = payload.isDefault
+        ? prev.map((item) => ({ ...item, isDefault: false }))
+        : prev
+      const hasDefault = next.some((item) => item.isDefault)
+      return [
+        {
+          ...payload,
+          id,
+          isDefault: payload.isDefault || !hasDefault,
+        },
+        ...next,
+      ]
+    })
+
+    return { ok: true, address: { ...payload, id } }
+  }
+
+  const updateAddress = async (id, payload) => {
+    if (hasApiSession) {
+      try {
+        const updated = await api.updateAddress(id, payload)
+        if (updated) {
+          setAddresses((prev) =>
+            prev.map((item) =>
+              item.id === id
+                ? updated
+                : updated.isDefault
+                  ? { ...item, isDefault: false }
+                  : item,
+            ),
+          )
+        }
+        return { ok: true, address: updated }
+      } catch {
+        return { ok: false, message: 'Unable to update address.' }
+      }
+    }
+
+    setAddresses((prev) => {
+      const hasDefault = prev.some((item) => item.isDefault && item.id !== id)
+      return prev.map((item) => {
+        if (item.id !== id) {
+          return payload.isDefault ? { ...item, isDefault: false } : item
+        }
+        return {
+          ...item,
+          ...payload,
+          isDefault: payload.isDefault || !hasDefault,
+        }
+      })
+    })
+
+    return { ok: true }
+  }
+
+  const deleteAddress = async (id) => {
+    if (hasApiSession) {
+      try {
+        await api.deleteAddress(id)
+        setAddresses((prev) => {
+          const next = prev.filter((item) => item.id !== id)
+          if (!next.some((item) => item.isDefault) && next.length > 0) {
+            next[0] = { ...next[0], isDefault: true }
+          }
+          return [...next]
+        })
+        return { ok: true }
+      } catch {
+        return { ok: false, message: 'Unable to delete address.' }
+      }
+    }
+
+    setAddresses((prev) => {
+      const next = prev.filter((item) => item.id !== id)
+      if (!next.some((item) => item.isDefault) && next.length > 0) {
+        next[0] = { ...next[0], isDefault: true }
+      }
+      return [...next]
+    })
+
+    return { ok: true }
+  }
+
+  const loadWishlist = useCallback(async () => {
+    if (!featureFlags.wishlist) return
+
+    if (!hasApiSession) {
+      setWishlistItems(parseStored(WISHLIST_STORAGE_KEY, []))
+      return
+    }
+
+    try {
+      const remote = await api.getWishlist()
+      setWishlistItems(remote)
+    } catch {
+      setWishlistItems([])
+    }
+  }, [hasApiSession])
+
+  const addWishlistItem = async ({ productId, size }) => {
+    if (!featureFlags.wishlist) return { ok: false, message: 'Wishlist is disabled.' }
+
+    if (hasApiSession) {
+      try {
+        const created = await api.addWishlistItem({ productId, size })
+        if (created) {
+          setWishlistItems((prev) => [created, ...prev.filter((item) => item.id !== created.id)])
+        }
+        return { ok: true, item: created }
+      } catch {
+        return { ok: false, message: 'Unable to update wishlist.' }
+      }
+    }
+
+    const product = products.find((item) => item._id === productId)
+    if (!product) return { ok: false, message: 'Select a valid product.' }
+
+    const id = `wish-${Date.now()}`
+    const item = {
+      id,
+      productId,
+      size,
+      product,
+      createdAt: new Date().toISOString(),
+    }
+    setWishlistItems((prev) => [item, ...prev])
+    return { ok: true, item }
+  }
+
+  const removeWishlistItem = async (id) => {
+    if (!featureFlags.wishlist) return { ok: false, message: 'Wishlist is disabled.' }
+
+    if (hasApiSession) {
+      try {
+        await api.removeWishlistItem(id)
+        setWishlistItems((prev) => prev.filter((item) => item.id !== id))
+        return { ok: true }
+      } catch {
+        return { ok: false, message: 'Unable to remove wishlist item.' }
+      }
+    }
+
+    setWishlistItems((prev) => prev.filter((item) => item.id !== id))
+    return { ok: true }
+  }
+
+  const loadPaymentMethods = useCallback(async () => {
+    if (!featureFlags.paymentMethods) return
+
+    if (!hasApiSession) {
+      setPaymentMethods(parseStored(PAYMENT_STORAGE_KEY, []))
+      return
+    }
+
+    try {
+      const remote = await api.getPaymentMethods()
+      setPaymentMethods(remote)
+    } catch {
+      setPaymentMethods([])
+    }
+  }, [hasApiSession])
+
+  const addPaymentMethod = async (payload) => {
+    if (!featureFlags.paymentMethods) return { ok: false, message: 'Saved payments are disabled.' }
+
+    if (hasApiSession) {
+      try {
+        const created = await api.addPaymentMethod(payload)
+        if (created) {
+          setPaymentMethods((prev) => {
+            const next = created.isDefault
+              ? prev.map((item) => ({ ...item, isDefault: false }))
+              : prev
+            return [created, ...next]
+          })
+        }
+        return { ok: true, method: created }
+      } catch {
+        return { ok: false, message: 'Unable to save payment method.' }
+      }
+    }
+
+    const id = `pm-${Date.now()}`
+    setPaymentMethods((prev) => {
+      const next = payload.isDefault
+        ? prev.map((item) => ({ ...item, isDefault: false }))
+        : prev
+      const hasDefault = next.some((item) => item.isDefault)
+      return [
+        {
+          ...payload,
+          id,
+          isDefault: payload.isDefault || !hasDefault,
+        },
+        ...next,
+      ]
+    })
+    return { ok: true }
+  }
+
+  const removePaymentMethod = async (id) => {
+    if (!featureFlags.paymentMethods) return { ok: false, message: 'Saved payments are disabled.' }
+
+    if (hasApiSession) {
+      try {
+        await api.removePaymentMethod(id)
+        setPaymentMethods((prev) => {
+          const next = prev.filter((item) => item.id !== id)
+          if (!next.some((item) => item.isDefault) && next.length > 0) {
+            next[0] = { ...next[0], isDefault: true }
+          }
+          return [...next]
+        })
+        return { ok: true }
+      } catch {
+        return { ok: false, message: 'Unable to delete payment method.' }
+      }
+    }
+
+    setPaymentMethods((prev) => prev.filter((item) => item.id !== id))
+    return { ok: true }
+  }
+
+  const loadNotifications = useCallback(async () => {
+    if (!featureFlags.notifications) return
+
+    if (!hasApiSession) {
+      setNotifications(parseStored(NOTIFICATION_STORAGE_KEY, []))
+      return
+    }
+
+    try {
+      const remote = await api.getNotifications()
+      setNotifications(remote)
+    } catch {
+      setNotifications([])
+    }
+  }, [hasApiSession])
+
+  const markNotificationRead = async (id) => {
+    if (!featureFlags.notifications) return { ok: false, message: 'Notifications are disabled.' }
+
+    if (hasApiSession) {
+      try {
+        const updated = await api.markNotificationRead(id)
+        if (updated) {
+          setNotifications((prev) => prev.map((item) => (item.id === id ? updated : item)))
+        }
+        return { ok: true }
+      } catch {
+        return { ok: false, message: 'Unable to update notification.' }
+      }
+    }
+
+    setNotifications((prev) => prev.map((item) => (item.id === id ? { ...item, readAt: new Date().toISOString() } : item)))
+    return { ok: true }
+  }
+
+  const loadLoyaltyPoints = useCallback(async () => {
+    if (!featureFlags.loyaltyPoints) return
+
+    if (!hasApiSession) {
+      setLoyaltyPoints(parseStored(LOYALTY_STORAGE_KEY, 0))
+      return
+    }
+
+    try {
+      const points = await api.getLoyaltyPoints()
+      setLoyaltyPoints(points)
+    } catch {
+      setLoyaltyPoints(0)
+    }
+  }, [hasApiSession])
+
   const login = async ({ name, email, password }) => {
     const payload = await api.login({ name, email, password })
     const signedUser = payload || { name: name || 'Customer', email }
@@ -178,7 +568,15 @@ export const ShopProvider = ({ children }) => {
     return signedUser
   }
 
-  const logout = () => setUser(null)
+  const logout = () => {
+    setUser(null)
+    setRemoteOrders([])
+    setAddresses(parseStored(ADDRESS_STORAGE_KEY, []))
+    setWishlistItems(parseStored(WISHLIST_STORAGE_KEY, []))
+    setPaymentMethods(parseStored(PAYMENT_STORAGE_KEY, []))
+    setNotifications(parseStored(NOTIFICATION_STORAGE_KEY, []))
+    setLoyaltyPoints(parseStored(LOYALTY_STORAGE_KEY, 0))
+  }
 
   const placeOrder = async ({ shippingAddress, paymentMethod }) => {
     if (!cartItems.length) {
@@ -207,18 +605,30 @@ export const ShopProvider = ({ children }) => {
     }
 
     const finalizeOrder = (finalOrder) => {
-      setOrders((prev) => [finalOrder, ...prev])
+      if (hasApiSession) {
+        setRemoteOrders((prev) => [finalOrder, ...prev])
+      } else {
+        setLocalOrders((prev) => [finalOrder, ...prev])
+      }
       clearCart()
       removeCoupon()
       return { ok: true, order: finalOrder }
     }
 
-    if (!user) {
+    if (!hasApiSession) {
       return finalizeOrder(orderPayload)
     }
 
     try {
-      const createdOrder = await api.placeOrder(orderPayload)
+      const createdOrder = await api.placeOrder({
+        shippingAddress,
+        paymentMethod,
+        items: cartItems.map((item) => ({
+          productId: item.productId,
+          size: item.size,
+          quantity: item.quantity,
+        })),
+      })
       return finalizeOrder(createdOrder || orderPayload)
     } catch (error) {
       const status = error && typeof error === 'object' && 'status' in error ? error.status : null
@@ -229,12 +639,69 @@ export const ShopProvider = ({ children }) => {
     }
   }
 
+  const requestPasswordReset = async ({ email }) => {
+    if (!api.isEnabled) {
+      return { ok: false, message: 'Password reset requires the API server.' }
+    }
+
+    try {
+      const response = await api.requestPasswordReset({ email })
+      return { ok: true, ...response }
+    } catch {
+      return { ok: false, message: 'Unable to request a password reset.' }
+    }
+  }
+
+  const resetPassword = async ({ email, token, password, passwordConfirmation }) => {
+    if (!api.isEnabled) {
+      return { ok: false, message: 'Password reset requires the API server.' }
+    }
+
+    try {
+      const response = await api.resetPassword({
+        email,
+        token,
+        password,
+        password_confirmation: passwordConfirmation,
+      })
+      return { ok: true, ...response }
+    } catch {
+      return { ok: false, message: 'Unable to reset password. Please verify the token.' }
+    }
+  }
+
+  useEffect(() => {
+    if (!hasApiSession) {
+      setRemoteOrders([])
+      return
+    }
+
+    refreshProfile()
+    loadOrders()
+    loadAddresses()
+    loadWishlist()
+    loadPaymentMethods()
+    loadNotifications()
+    loadLoyaltyPoints()
+  }, [
+    hasApiSession,
+    refreshProfile,
+    loadOrders,
+    loadAddresses,
+    loadWishlist,
+    loadPaymentMethods,
+    loadNotifications,
+    loadLoyaltyPoints,
+  ])
+
   const value = {
     products,
     isLoading,
     error,
     user,
     orders,
+    ordersLoading,
+    ordersError,
     cartItems,
     cartCount,
     subtotal,
@@ -252,6 +719,26 @@ export const ShopProvider = ({ children }) => {
     login,
     logout,
     placeOrder,
+    refreshProfile,
+    updateProfile,
+    addresses,
+    defaultAddress,
+    loadAddresses,
+    addAddress,
+    updateAddress,
+    deleteAddress,
+    requestPasswordReset,
+    resetPassword,
+    featureFlags,
+    wishlistItems,
+    addWishlistItem,
+    removeWishlistItem,
+    paymentMethods,
+    addPaymentMethod,
+    removePaymentMethod,
+    notifications,
+    markNotificationRead,
+    loyaltyPoints,
   }
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>

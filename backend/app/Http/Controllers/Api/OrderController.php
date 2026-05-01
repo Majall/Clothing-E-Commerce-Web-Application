@@ -15,6 +15,19 @@ class OrderController extends Controller
 
     private const STANDARD_SHIPPING_FEE = 40;
 
+    public function index(Request $request): JsonResponse
+    {
+        $orders = $request->user()
+            ->orders()
+            ->with(['items.product', 'user'])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'orders' => $orders->map(fn (Order $order) => $this->toFrontendArray($order))->values(),
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         $payload = $request->validate([
@@ -71,35 +84,40 @@ class OrderController extends Controller
 
             $order->items()->createMany($normalizedItems->all());
 
-            return $order->load(['items.product']);
+            return $order->load(['items.product', 'user']);
         });
 
         return response()->json([
-            'order' => [
-                'id' => $order->order_number,
-                'createdAt' => $order->created_at?->toIso8601String(),
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ],
-                'items' => $order->items->map(function ($item) {
-                    return [
-                        'sku' => $item->product_id.'|'.$item->size,
-                        'productId' => $item->product_id,
-                        'size' => $item->size,
-                        'quantity' => $item->quantity,
-                        'product' => $item->product->toFrontendArray(),
-                        'lineTotal' => $item->line_total,
-                    ];
-                })->values(),
-                'shippingAddress' => $order->shipping_address,
-                'paymentMethod' => $order->payment_method,
-                'subtotal' => $order->subtotal,
-                'shipping' => $order->shipping,
-                'total' => $order->total,
-                'status' => $order->status,
-            ],
+            'order' => $this->toFrontendArray($order),
         ], 201);
+    }
+
+    private function toFrontendArray(Order $order): array
+    {
+        return [
+            'id' => $order->order_number,
+            'createdAt' => $order->created_at?->toIso8601String(),
+            'user' => [
+                'id' => $order->user_id,
+                'name' => $order->user?->name,
+                'email' => $order->user?->email,
+            ],
+            'items' => $order->items->map(function ($item) {
+                return [
+                    'sku' => $item->product_id.'|'.$item->size,
+                    'productId' => $item->product_id,
+                    'size' => $item->size,
+                    'quantity' => $item->quantity,
+                    'product' => $item->product->toFrontendArray(),
+                    'lineTotal' => $item->line_total,
+                ];
+            })->values(),
+            'shippingAddress' => $order->shipping_address,
+            'paymentMethod' => $order->payment_method,
+            'subtotal' => $order->subtotal,
+            'shipping' => $order->shipping,
+            'total' => $order->total,
+            'status' => $order->status,
+        ];
     }
 }

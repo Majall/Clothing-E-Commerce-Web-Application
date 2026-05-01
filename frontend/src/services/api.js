@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const USER_STORAGE_KEY = 'shop_user_v1'
+const API_ENABLED = Boolean(API_BASE_URL)
 
 const getAuthToken = () => {
   try {
@@ -12,7 +13,7 @@ const getAuthToken = () => {
 }
 
 const request = async (path, options = {}) => {
-  if (!API_BASE_URL) return null
+  if (!API_ENABLED) return null
 
   const token = getAuthToken()
   const headers = {
@@ -32,10 +33,12 @@ const request = async (path, options = {}) => {
     throw error
   }
 
+  if (response.status === 204) return null
   return response.json()
 }
 
 export const api = {
+  isEnabled: API_ENABLED,
   async getProducts() {
     const data = await request('/products')
     return data?.products || []
@@ -47,11 +50,104 @@ export const api = {
     })
     return data?.user || null
   },
+  async requestPasswordReset(payload) {
+    const data = await request('/auth/password/forgot', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    return data || null
+  },
+  async resetPassword(payload) {
+    const data = await request('/auth/password/reset', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    return data || null
+  },
+  async getProfile() {
+    const data = await request('/profile')
+    return data?.user || null
+  },
+  async updateProfile(payload) {
+    const data = await request('/profile', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+    return data?.user || null
+  },
+  async getAddresses() {
+    const data = await request('/addresses')
+    return data?.addresses || []
+  },
+  async createAddress(payload) {
+    const data = await request('/addresses', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    return data?.address || null
+  },
+  async updateAddress(id, payload) {
+    const data = await request(`/addresses/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+    return data?.address || null
+  },
+  async deleteAddress(id) {
+    const data = await request(`/addresses/${id}`, { method: 'DELETE' })
+    return data || null
+  },
+  async getOrders() {
+    const data = await request('/orders')
+    return data?.orders || []
+  },
   async placeOrder(payload) {
     const data = await request('/orders', {
       method: 'POST',
       body: JSON.stringify(payload),
     })
     return data?.order || null
+  },
+  async getWishlist() {
+    const data = await request('/wishlist')
+    return data?.items || []
+  },
+  async addWishlistItem(payload) {
+    const data = await request('/wishlist', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    return data?.item || null
+  },
+  async removeWishlistItem(id) {
+    const data = await request(`/wishlist/${id}`, { method: 'DELETE' })
+    return data || null
+  },
+  async getPaymentMethods() {
+    const data = await request('/payment-methods')
+    return data?.methods || []
+  },
+  async addPaymentMethod(payload) {
+    const data = await request('/payment-methods', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    return data?.method || null
+  },
+  async removePaymentMethod(id) {
+    const data = await request(`/payment-methods/${id}`, { method: 'DELETE' })
+    return data || null
+  },
+  async getNotifications() {
+    const data = await request('/notifications')
+    return data?.notifications || []
+  },
+  async markNotificationRead(id) {
+    const data = await request(`/notifications/${id}/read`, { method: 'PATCH' })
+    return data?.notification || null
+  },
+  async getLoyaltyPoints() {
+    const data = await request('/loyalty-points')
+    return data?.points ?? 0
   },
 }

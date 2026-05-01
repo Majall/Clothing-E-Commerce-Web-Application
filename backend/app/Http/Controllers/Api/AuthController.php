@@ -47,6 +47,8 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'phone' => $user->phone,
+                'loyaltyPoints' => $user->loyalty_points ?? 0,
                 'token' => $token,
             ],
         ]);
