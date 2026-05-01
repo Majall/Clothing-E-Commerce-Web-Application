@@ -4,6 +4,8 @@ import PageHeader from '../components/PageHeader'
 import { useShop } from '../context/useShop'
 import { getCouponLabel, getShippingLabel } from '../utils/coupon'
 
+const PAYMENT_METHODS = ['Credit / Debit Card', 'Cash on Delivery', 'Bank Transfer', 'Digital Wallet']
+
 const PlaceOrder = () => {
   const { cartItems, subtotal, baseShipping, shipping, discount, total, coupon, user, placeOrder } = useShop()
   const navigate = useNavigate()
@@ -205,10 +207,11 @@ const PlaceOrder = () => {
             onChange={(event) => updateField('paymentMethod', event.target.value)}
             className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none md:col-span-2'
           >
-            <option value='Credit / Debit Card'>Credit / Debit Card</option>
-            <option value='Cash on Delivery'>Cash on Delivery</option>
-            <option value='Bank Transfer'>Bank Transfer</option>
-            <option value='Digital Wallet'>Digital Wallet</option>
+            {PAYMENT_METHODS.map((method) => (
+              <option key={method} value={method}>
+                {method}
+              </option>
+            ))}
           </select>
 
           <button

@@ -114,7 +114,7 @@ export const ShopProvider = ({ children }) => {
   const discount = useMemo(() => {
     if (!coupon || !subtotal) return 0
     if (coupon.type === 'percent') {
-      return Math.round((subtotal * coupon.value) / 100)
+      return Math.floor((subtotal * coupon.value) / 100)
     }
     if (coupon.type === 'amount') {
       return Math.min(subtotal, coupon.value)
@@ -206,22 +206,26 @@ export const ShopProvider = ({ children }) => {
       status: 'Confirmed',
     }
 
-    try {
-      const createdOrder = user ? await api.placeOrder(orderPayload) : null
-      const finalOrder = createdOrder || orderPayload
+    const finalizeOrder = (finalOrder) => {
       setOrders((prev) => [finalOrder, ...prev])
       clearCart()
       removeCoupon()
       return { ok: true, order: finalOrder }
+    }
+
+    if (!user) {
+      return finalizeOrder(orderPayload)
+    }
+
+    try {
+      const createdOrder = await api.placeOrder(orderPayload)
+      return finalizeOrder(createdOrder || orderPayload)
     } catch (error) {
-      if (user) {
-        const reason = error instanceof Error ? error.message : ''
-        const message = reason.includes('401')
-          ? 'Your session expired. Please login again to place the order.'
-          : 'Order placement failed while contacting the server. Please try again.'
-        return { ok: false, message }
-      }
-      return { ok: false, message: 'Order placement failed. Please check your details and try again.' }
+      const reason = error instanceof Error ? error.message : ''
+      const message = reason.includes('401')
+        ? 'Your session expired. Please login again to place the order.'
+        : 'Order placement failed while contacting the server. Please try again.'
+      return { ok: false, message }
     }
   }
 
