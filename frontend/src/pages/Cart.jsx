@@ -135,7 +135,6 @@ const Cart = () => {
               {couponStatus.message}
             </p>
           ) : null}
-          <p className='text-xs text-gray-500'>Try: WELCOME10, SAVE50, FREESHIP</p>
         </div>
 
         <div className='mt-6 space-y-2'>

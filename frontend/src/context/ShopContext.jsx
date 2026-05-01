@@ -213,13 +213,15 @@ export const ShopProvider = ({ children }) => {
       clearCart()
       removeCoupon()
       return { ok: true, order: finalOrder }
-    } catch {
-      return {
-        ok: false,
-        message: user
-          ? 'Order placement failed while contacting the server. Please try again.'
-          : 'Order placement failed. Please check your details and try again.',
+    } catch (error) {
+      if (user) {
+        const reason = error instanceof Error ? error.message : ''
+        const message = reason.includes('401')
+          ? 'Your session expired. Please login again to place the order.'
+          : 'Order placement failed while contacting the server. Please try again.'
+        return { ok: false, message }
       }
+      return { ok: false, message: 'Order placement failed. Please check your details and try again.' }
     }
   }
 

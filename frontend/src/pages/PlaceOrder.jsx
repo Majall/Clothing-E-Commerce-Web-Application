@@ -205,10 +205,10 @@ const PlaceOrder = () => {
             onChange={(event) => updateField('paymentMethod', event.target.value)}
             className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none md:col-span-2'
           >
-            <option>Credit / Debit Card</option>
-            <option>Cash on Delivery</option>
-            <option>Bank Transfer</option>
-            <option>Digital Wallet</option>
+            <option value='Credit / Debit Card'>Credit / Debit Card</option>
+            <option value='Cash on Delivery'>Cash on Delivery</option>
+            <option value='Bank Transfer'>Bank Transfer</option>
+            <option value='Digital Wallet'>Digital Wallet</option>
           </select>
 
           <button
