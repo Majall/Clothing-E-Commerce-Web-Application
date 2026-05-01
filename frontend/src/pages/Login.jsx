@@ -107,6 +107,14 @@ const Login = () => {
           Continue as guest
         </button>
 
+        <button
+          type='button'
+          onClick={() => navigate('/account/password-reset')}
+          className='w-full rounded-md border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100'
+        >
+          Forgot password?
+        </button>
+
         {error ? <p className='text-sm text-red-600'>{error}</p> : null}
       </form>
     </div>

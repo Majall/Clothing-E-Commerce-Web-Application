@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
 import { useShop } from '../context/useShop'
@@ -7,23 +7,12 @@ import { getCouponLabel, getShippingLabel } from '../utils/coupon'
 const PAYMENT_METHODS = ['Credit/Debit Card', 'Cash on Delivery', 'Bank Transfer', 'Digital Wallet']
 
 const PlaceOrder = () => {
-  const { cartItems, subtotal, baseShipping, shipping, discount, total, coupon, user, placeOrder } = useShop()
+  const { cartItems, subtotal, baseShipping, shipping, discount, total, coupon, user, placeOrder, defaultAddress } = useShop()
   const navigate = useNavigate()
   const [status, setStatus] = useState({ type: '', message: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [confirmation, setConfirmation] = useState(null)
-  const [form, setForm] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    country: '',
-    paymentMethod: 'Cash on Delivery',
-  })
-
-  const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }))
+  const formKey = defaultAddress?.id || user?.email || 'guest'
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -31,17 +20,21 @@ const PlaceOrder = () => {
     setStatus({ type: '', message: '' })
     setConfirmation(null)
 
+    const formData = new FormData(event.currentTarget)
+    const shippingAddress = {
+      fullName: formData.get('fullName')?.toString().trim() || '',
+      email: formData.get('email')?.toString().trim() || '',
+      phone: formData.get('phone')?.toString().trim() || '',
+      address: formData.get('address')?.toString().trim() || '',
+      city: formData.get('city')?.toString().trim() || '',
+      postalCode: formData.get('postalCode')?.toString().trim() || '',
+      country: formData.get('country')?.toString().trim() || '',
+    }
+    const paymentMethod = formData.get('paymentMethod')?.toString() || 'Cash on Delivery'
+
     const result = await placeOrder({
-      shippingAddress: {
-        fullName: form.fullName,
-        email: form.email,
-        phone: form.phone,
-        address: form.address,
-        city: form.city,
-        postalCode: form.postalCode,
-        country: form.country,
-      },
-      paymentMethod: form.paymentMethod,
+      shippingAddress,
+      paymentMethod,
     })
 
     if (result.ok) {
@@ -150,61 +143,65 @@ const PlaceOrder = () => {
           </div>
         ) : null}
 
-        <form onSubmit={handleSubmit} className='grid gap-3 rounded-lg border border-gray-200 bg-white p-5 md:grid-cols-2'>
+        <form
+          key={formKey}
+          onSubmit={handleSubmit}
+          className='grid gap-3 rounded-lg border border-gray-200 bg-white p-5 md:grid-cols-2'
+        >
           <input
             required
-            value={form.fullName}
-            onChange={(event) => updateField('fullName', event.target.value)}
+            name='fullName'
+            defaultValue={defaultAddress?.fullName || user?.name || ''}
             placeholder='Full name'
             className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
           />
           <input
             required
             type='email'
-            value={form.email}
-            onChange={(event) => updateField('email', event.target.value)}
+            name='email'
+            defaultValue={user?.email || ''}
             placeholder='Email'
             className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
           />
           <input
             required
-            value={form.phone}
-            onChange={(event) => updateField('phone', event.target.value)}
+            name='phone'
+            defaultValue={defaultAddress?.phone || ''}
             placeholder='Phone'
             className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
           />
           <input
             required
-            value={form.city}
-            onChange={(event) => updateField('city', event.target.value)}
+            name='city'
+            defaultValue={defaultAddress?.city || ''}
             placeholder='City'
             className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
           />
           <input
             required
-            value={form.address}
-            onChange={(event) => updateField('address', event.target.value)}
+            name='address'
+            defaultValue={defaultAddress?.line1 || ''}
             placeholder='Street address'
             className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none md:col-span-2'
           />
           <input
             required
-            value={form.postalCode}
-            onChange={(event) => updateField('postalCode', event.target.value)}
+            name='postalCode'
+            defaultValue={defaultAddress?.postalCode || ''}
             placeholder='Postal code'
             className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
           />
           <input
             required
-            value={form.country}
-            onChange={(event) => updateField('country', event.target.value)}
+            name='country'
+            defaultValue={defaultAddress?.country || ''}
             placeholder='Country'
             className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
           />
 
           <select
-            value={form.paymentMethod}
-            onChange={(event) => updateField('paymentMethod', event.target.value)}
+            name='paymentMethod'
+            defaultValue='Cash on Delivery'
             className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none md:col-span-2'
           >
             {PAYMENT_METHODS.map((method) => (

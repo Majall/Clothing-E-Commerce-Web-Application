@@ -8,6 +8,7 @@ const navLinks = [
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
   { to: '/orders', label: 'Orders' },
+  { to: '/account/profile', label: 'Account' },
 ]
 
 const Navbar = () => {
