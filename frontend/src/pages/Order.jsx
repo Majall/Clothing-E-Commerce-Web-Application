@@ -50,8 +50,25 @@ const Order = () => {
               ))}
             </div>
 
-            <div className='mt-4 border-t border-gray-200 pt-3 text-right text-sm font-semibold text-gray-900'>
-              Total: ৳{order.total}
+            <div className='mt-4 border-t border-gray-200 pt-3 text-sm text-gray-700'>
+              <div className='flex justify-between'>
+                <span>Subtotal</span>
+                <span>৳{order.subtotal ?? order.total}</span>
+              </div>
+              {order.discount ? (
+                <div className='flex justify-between text-green-700'>
+                  <span>Discount</span>
+                  <span>-৳{order.discount}</span>
+                </div>
+              ) : null}
+              <div className='flex justify-between'>
+                <span>Shipping</span>
+                <span>{order.shipping ? `৳${order.shipping}` : 'Free'}</span>
+              </div>
+              <div className='mt-2 flex justify-between text-base font-semibold text-gray-900'>
+                <span>Total</span>
+                <span>৳{order.total}</span>
+              </div>
             </div>
           </article>
         ))}

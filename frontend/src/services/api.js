@@ -27,7 +27,9 @@ const request = async (path, options = {}) => {
   })
 
   if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status} ${response.statusText}`)
+    const error = new Error(`API request failed with status ${response.status} ${response.statusText}`)
+    error.status = response.status
+    throw error
   }
 
   return response.json()

@@ -28,7 +28,7 @@ const App = () => {
           <Route
             path='/placeorder'
             element={
-              <CheckoutGuard requireCart>
+              <CheckoutGuard requireCart requireAuth={false}>
                 <PlaceOrder />
               </CheckoutGuard>
             }
