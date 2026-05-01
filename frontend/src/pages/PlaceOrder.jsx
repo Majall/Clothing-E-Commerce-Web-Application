@@ -4,7 +4,7 @@ import PageHeader from '../components/PageHeader'
 import { useShop } from '../context/useShop'
 import { getCouponLabel, getShippingLabel } from '../utils/coupon'
 
-const PAYMENT_METHODS = ['Credit / Debit Card', 'Cash on Delivery', 'Bank Transfer', 'Digital Wallet']
+const PAYMENT_METHODS = ['Credit/Debit Card', 'Cash on Delivery', 'Bank Transfer', 'Digital Wallet']
 
 const PlaceOrder = () => {
   const { cartItems, subtotal, baseShipping, shipping, discount, total, coupon, user, placeOrder } = useShop()

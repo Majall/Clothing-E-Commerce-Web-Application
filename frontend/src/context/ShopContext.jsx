@@ -117,7 +117,7 @@ export const ShopProvider = ({ children }) => {
       return Math.floor((subtotal * coupon.value) / 100)
     }
     if (coupon.type === 'amount') {
-      return Math.min(subtotal, coupon.value)
+      return Math.floor(Math.min(subtotal, coupon.value))
     }
     return 0
   }, [coupon, subtotal])
@@ -221,8 +221,8 @@ export const ShopProvider = ({ children }) => {
       const createdOrder = await api.placeOrder(orderPayload)
       return finalizeOrder(createdOrder || orderPayload)
     } catch (error) {
-      const reason = error instanceof Error ? error.message : ''
-      const message = reason.includes('401')
+      const status = error && typeof error === 'object' && 'status' in error ? error.status : null
+      const message = status === 401
         ? 'Your session expired. Please login again to place the order.'
         : 'Order placement failed while contacting the server. Please try again.'
       return { ok: false, message }
