@@ -214,7 +214,12 @@ export const ShopProvider = ({ children }) => {
       removeCoupon()
       return { ok: true, order: finalOrder }
     } catch {
-      return { ok: false, message: 'Order placement failed. Please try again.' }
+      return {
+        ok: false,
+        message: user
+          ? 'Order placement failed while contacting the server. Please try again.'
+          : 'Order placement failed. Please check your details and try again.',
+      }
     }
   }
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
 import { useShop } from '../context/useShop'
+import { getCouponLabel, getShippingLabel } from '../utils/coupon'
 
 const PlaceOrder = () => {
   const { cartItems, subtotal, baseShipping, shipping, discount, total, coupon, user, placeOrder } = useShop()
@@ -236,18 +237,12 @@ const PlaceOrder = () => {
           {coupon ? (
             <div className='flex justify-between text-green-700'>
               <span>Coupon ({coupon.code})</span>
-              <span>{discount ? `-৳${discount}` : coupon.type === 'shipping' ? 'Free shipping' : 'Applied'}</span>
+              <span>{getCouponLabel(coupon, discount)}</span>
             </div>
           ) : null}
           <div className='flex justify-between'>
             <span>Shipping</span>
-            <span>
-              {shipping
-                ? `৳${shipping}`
-                : coupon?.type === 'shipping' && baseShipping > 0
-                  ? `Free (${coupon.code})`
-                  : 'Free'}
-            </span>
+            <span>{getShippingLabel({ shipping, coupon, baseShipping })}</span>
           </div>
           <div className='flex justify-between border-t border-gray-200 pt-2 text-base font-bold'>
             <span>Total</span>
