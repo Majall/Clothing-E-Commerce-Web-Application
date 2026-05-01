@@ -84,7 +84,7 @@ const Cart = () => {
           </div>
           {coupon ? (
             <div className='flex justify-between text-green-700'>
-              <span>Coupon ({coupon?.code})</span>
+              <span>Coupon ({coupon.code})</span>
               <span>{getCouponLabel(coupon, discount)}</span>
             </div>
           ) : null}

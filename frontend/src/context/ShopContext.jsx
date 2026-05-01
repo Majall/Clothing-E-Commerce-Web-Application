@@ -109,7 +109,7 @@ export const ShopProvider = ({ children }) => {
     return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE
   }, [subtotal])
 
-  const shipping = coupon?.type === 'shipping' ? 0 : baseShipping
+  const shipping = useMemo(() => (coupon?.type === 'shipping' ? 0 : baseShipping), [coupon, baseShipping])
 
   const discount = useMemo(() => {
     if (!coupon || !subtotal) return 0
@@ -122,7 +122,7 @@ export const ShopProvider = ({ children }) => {
     return 0
   }, [coupon, subtotal])
 
-  const total = Math.max(subtotal - discount + shipping, 0)
+  const total = useMemo(() => Math.max(subtotal - discount + shipping, 0), [subtotal, discount, shipping])
 
   const addToCart = (productId, size, quantity = 1) => {
     if (!size || quantity < 1) return
