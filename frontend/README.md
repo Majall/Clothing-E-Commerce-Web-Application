@@ -9,9 +9,10 @@ A Vite + React storefront app with product browsing, filtering, cart management,
 - Collection page with search, category/subcategory filters, and sorting
 - Product details page with image preview, size selection, and add-to-cart
 - Cart page with quantity controls and order summary
-- Checkout (place order) with shipping form and payment method
+- Checkout (place order) with guest checkout, shipping form, and payment methods
 - Orders page with persisted order history
-- Login/logout flow and route guards for checkout/orders
+- Login/register flow, guest checkout option, and route guards for orders
+- Coupon codes with discount + free shipping support
 - localStorage persistence for user, cart, and orders
 - Optional API integration via `VITE_API_BASE_URL` with local fallback
 

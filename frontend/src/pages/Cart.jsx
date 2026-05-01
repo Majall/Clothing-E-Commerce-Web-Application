@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import EmptyState from '../components/EmptyState'
 import PageHeader from '../components/PageHeader'
@@ -5,8 +6,30 @@ import QuantityInput from '../components/QuantityInput'
 import { useShop } from '../context/useShop'
 
 const Cart = () => {
-  const { cartItems, subtotal, shipping, total, removeFromCart, updateCartQuantity } = useShop()
+  const {
+    cartItems,
+    subtotal,
+    baseShipping,
+    shipping,
+    discount,
+    total,
+    coupon,
+    applyCoupon,
+    removeCoupon,
+    removeFromCart,
+    updateCartQuantity,
+  } = useShop()
   const navigate = useNavigate()
+  const [couponCode, setCouponCode] = useState('')
+  const [couponStatus, setCouponStatus] = useState(null)
+
+  const handleApplyCoupon = () => {
+    const result = applyCoupon(couponCode)
+    setCouponStatus({ type: result.ok ? 'success' : 'error', message: result.message })
+    if (result.ok) {
+      setCouponCode('')
+    }
+  }
 
   if (!cartItems.length) {
     return (
@@ -58,9 +81,21 @@ const Cart = () => {
             <span>Subtotal</span>
             <span>৳{subtotal}</span>
           </div>
+          {coupon ? (
+            <div className='flex justify-between text-green-700'>
+              <span>Coupon ({coupon?.code})</span>
+              <span>{discount ? `-৳${discount}` : coupon?.type === 'shipping' ? 'Free shipping' : 'Applied'}</span>
+            </div>
+          ) : null}
           <div className='flex justify-between'>
             <span>Shipping</span>
-            <span>{shipping ? `৳${shipping}` : 'Free'}</span>
+            <span>
+              {shipping
+                ? `৳${shipping}`
+                : coupon?.type === 'shipping' && baseShipping > 0
+                  ? `Free (${coupon.code})`
+                  : 'Free'}
+            </span>
           </div>
           <div className='flex justify-between border-t border-gray-200 pt-2 text-base font-bold'>
             <span>Total</span>
@@ -68,12 +103,60 @@ const Cart = () => {
           </div>
         </div>
 
-        <button
-          onClick={() => navigate('/placeorder')}
-          className='mt-5 w-full rounded-md bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800'
-        >
-          Continue to Checkout
-        </button>
+        <div className='mt-5 space-y-2'>
+          <p className='text-sm font-semibold text-gray-800'>Apply coupon</p>
+          <div className='flex gap-2'>
+            <input
+              value={couponCode}
+              onChange={(event) => setCouponCode(event.target.value)}
+              placeholder='Enter coupon code'
+              className='flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            />
+            <button
+              type='button'
+              onClick={handleApplyCoupon}
+              className='rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100'
+            >
+              Apply
+            </button>
+          </div>
+          {coupon ? (
+            <div className='flex items-center justify-between text-xs text-green-700'>
+              <span>{coupon.code} applied</span>
+              <button
+                type='button'
+                onClick={() => {
+                  removeCoupon()
+                  setCouponStatus({ type: 'success', message: 'Coupon removed.' })
+                }}
+                className='font-semibold text-gray-700 hover:text-black'
+              >
+                Remove
+              </button>
+            </div>
+          ) : null}
+          {couponStatus?.message ? (
+            <p className={`text-xs ${couponStatus.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
+              {couponStatus.message}
+            </p>
+          ) : null}
+          <p className='text-xs text-gray-500'>Try: WELCOME10, SAVE50, FREESHIP</p>
+        </div>
+
+        <div className='mt-6 space-y-2'>
+          <button
+            onClick={() => navigate('/placeorder')}
+            className='w-full rounded-md bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800'
+          >
+            Continue to Checkout
+          </button>
+          <Link
+            to='/collection'
+            className='block w-full rounded-md border border-gray-300 px-4 py-3 text-center text-sm font-semibold text-gray-700 hover:bg-gray-100'
+          >
+            Continue shopping
+          </Link>
+        </div>
       </aside>
     </div>
   )

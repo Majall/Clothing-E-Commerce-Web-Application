@@ -11,6 +11,8 @@ const Login = () => {
 
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState('')
+  const [mode, setMode] = useState('login')
+  const isRegister = mode === 'register'
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -40,13 +42,38 @@ const Login = () => {
 
   return (
     <div className='mx-auto max-w-lg rounded-lg border border-gray-200 bg-white p-6'>
-      <PageHeader title='Login' subtitle='Sign in to place and track orders.' />
+      <PageHeader
+        title={isRegister ? 'Create account' : 'Login'}
+        subtitle={isRegister ? 'Register to track and manage your orders.' : 'Sign in to place and track orders.'}
+      />
+
+      <div className='mb-4 flex gap-2'>
+        <button
+          type='button'
+          onClick={() => setMode('login')}
+          className={`flex-1 rounded-md border px-3 py-2 text-xs font-semibold uppercase tracking-wide ${
+            !isRegister ? 'border-black bg-black text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Login
+        </button>
+        <button
+          type='button'
+          onClick={() => setMode('register')}
+          className={`flex-1 rounded-md border px-3 py-2 text-xs font-semibold uppercase tracking-wide ${
+            isRegister ? 'border-black bg-black text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Register
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit} className='space-y-3'>
         <input
           value={form.name}
+          required={isRegister}
           onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-          placeholder='Name (optional)'
+          placeholder={isRegister ? 'Full name' : 'Name (optional)'}
           className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
         />
         <input
@@ -67,7 +94,15 @@ const Login = () => {
         />
 
         <button type='submit' className='w-full rounded-md bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800'>
-          Sign in
+          {isRegister ? 'Create account' : 'Sign in'}
+        </button>
+
+        <button
+          type='button'
+          onClick={() => navigate(redirectTo, { replace: true })}
+          className='w-full rounded-md border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100'
+        >
+          Continue as guest
         </button>
 
         {error ? <p className='text-sm text-red-600'>{error}</p> : null}

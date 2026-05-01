@@ -6,8 +6,14 @@ import { ShopContext } from './context'
 const CART_STORAGE_KEY = 'shop_cart_v1'
 const ORDERS_STORAGE_KEY = 'shop_orders_v1'
 const USER_STORAGE_KEY = 'shop_user_v1'
+const COUPON_STORAGE_KEY = 'shop_coupon_v1'
 const FREE_SHIPPING_THRESHOLD = 500
 const STANDARD_SHIPPING_FEE = 40
+const AVAILABLE_COUPONS = [
+  { code: 'WELCOME10', type: 'percent', value: 10, description: '10% off your order' },
+  { code: 'SAVE50', type: 'amount', value: 50, description: '৳50 off your order' },
+  { code: 'FREESHIP', type: 'shipping', value: 0, description: 'Free standard shipping' },
+]
 
 const parseStored = (key, fallback) => {
   try {
@@ -23,6 +29,7 @@ export const ShopProvider = ({ children }) => {
   const [cart, setCart] = useState(() => parseStored(CART_STORAGE_KEY, {}))
   const [orders, setOrders] = useState(() => parseStored(ORDERS_STORAGE_KEY, []))
   const [user, setUser] = useState(() => parseStored(USER_STORAGE_KEY, null))
+  const [coupon, setCoupon] = useState(() => parseStored(COUPON_STORAGE_KEY, null))
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -58,6 +65,14 @@ export const ShopProvider = ({ children }) => {
     localStorage.removeItem(USER_STORAGE_KEY)
   }, [user])
 
+  useEffect(() => {
+    if (coupon) {
+      localStorage.setItem(COUPON_STORAGE_KEY, JSON.stringify(coupon))
+      return
+    }
+    localStorage.removeItem(COUPON_STORAGE_KEY)
+  }, [coupon])
+
   const cartItems = useMemo(
     () =>
       Object.entries(cart)
@@ -89,12 +104,25 @@ export const ShopProvider = ({ children }) => {
     [cartItems],
   )
 
-  const shipping = useMemo(() => {
+  const baseShipping = useMemo(() => {
     if (!subtotal) return 0
     return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE
   }, [subtotal])
 
-  const total = subtotal + shipping
+  const shipping = coupon?.type === 'shipping' ? 0 : baseShipping
+
+  const discount = useMemo(() => {
+    if (!coupon || !subtotal) return 0
+    if (coupon.type === 'percent') {
+      return Math.round((subtotal * coupon.value) / 100)
+    }
+    if (coupon.type === 'amount') {
+      return Math.min(subtotal, coupon.value)
+    }
+    return 0
+  }, [coupon, subtotal])
+
+  const total = Math.max(subtotal - discount + shipping, 0)
 
   const addToCart = (productId, size, quantity = 1) => {
     if (!size || quantity < 1) return
@@ -125,6 +153,24 @@ export const ShopProvider = ({ children }) => {
 
   const clearCart = () => setCart({})
 
+  const applyCoupon = (code) => {
+    const normalized = code.trim().toUpperCase()
+    if (!normalized) {
+      return { ok: false, message: 'Enter a coupon code to apply.' }
+    }
+    if (!subtotal) {
+      return { ok: false, message: 'Add items to your cart before applying a coupon.' }
+    }
+    const matched = AVAILABLE_COUPONS.find((item) => item.code === normalized)
+    if (!matched) {
+      return { ok: false, message: 'Invalid coupon code.' }
+    }
+    setCoupon(matched)
+    return { ok: true, message: `${matched.code} applied successfully.` }
+  }
+
+  const removeCoupon = () => setCoupon(null)
+
   const login = async ({ name, email, password }) => {
     const payload = await api.login({ name, email, password })
     const signedUser = payload || { name: name || 'Customer', email }
@@ -135,32 +181,37 @@ export const ShopProvider = ({ children }) => {
   const logout = () => setUser(null)
 
   const placeOrder = async ({ shippingAddress, paymentMethod }) => {
-    if (!user) {
-      return { ok: false, message: 'Please login before placing an order.' }
-    }
-
     if (!cartItems.length) {
       return { ok: false, message: 'Your cart is empty.' }
+    }
+
+    const orderUser = user || {
+      name: shippingAddress.fullName || 'Guest',
+      email: shippingAddress.email,
+      guest: true,
     }
 
     const orderPayload = {
       id: `ORD-${Date.now()}`,
       createdAt: new Date().toISOString(),
-      user,
+      user: orderUser,
       items: cartItems,
       shippingAddress,
       paymentMethod,
       subtotal,
       shipping,
+      discount,
       total,
+      coupon: coupon ? { code: coupon.code, type: coupon.type, value: coupon.value } : null,
       status: 'Confirmed',
     }
 
     try {
-      const createdOrder = await api.placeOrder(orderPayload)
+      const createdOrder = user ? await api.placeOrder(orderPayload) : null
       const finalOrder = createdOrder || orderPayload
       setOrders((prev) => [finalOrder, ...prev])
       clearCart()
+      removeCoupon()
       return { ok: true, order: finalOrder }
     } catch {
       return { ok: false, message: 'Order placement failed. Please try again.' }
@@ -176,12 +227,17 @@ export const ShopProvider = ({ children }) => {
     cartItems,
     cartCount,
     subtotal,
+    baseShipping,
     shipping,
+    discount,
     total,
     addToCart,
     updateCartQuantity,
     removeFromCart,
     clearCart,
+    coupon,
+    applyCoupon,
+    removeCoupon,
     login,
     logout,
     placeOrder,
