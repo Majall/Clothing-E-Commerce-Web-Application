@@ -1,9 +1,11 @@
 import { Route, Routes } from 'react-router-dom'
 import CheckoutGuard from './components/CheckoutGuard'
 import Footer from './components/Footer'
+import ChatbotWidget from './components/ChatbotWidget'
 import Navbar from './components/Navbar'
 import About from './pages/About'
 import Addresses from './pages/Addresses'
+import AdminAnalytics from './pages/AdminAnalytics'
 import Cart from './pages/Cart'
 import Collection from './pages/Collection'
 import Contact from './pages/Contact'
@@ -21,9 +23,9 @@ import Wishlist from './pages/Wishlist'
 
 const App = () => {
   return (
-    <div className='min-h-screen bg-gray-50 px-4 sm:px-[5vw] md:px-[7vw] lg:px-[10vw]'>
+    <div className='min-h-screen px-4 sm:px-[5vw] md:px-[7vw] lg:px-[10vw]'>
       <Navbar />
-      <main className='mx-auto max-w-7xl pb-8'>
+      <main className='mx-auto max-w-7xl pb-12'>
         <Routes>
           <Route path='/' element={<Home />} />
           <Route path='/collection' element={<Collection />} />
@@ -32,6 +34,14 @@ const App = () => {
           <Route path='/cart' element={<Cart />} />
           <Route path='/product/:id' element={<Product />} />
           <Route path='/login' element={<Login />} />
+          <Route
+            path='/admin/analytics'
+            element={
+              <CheckoutGuard>
+                <AdminAnalytics />
+              </CheckoutGuard>
+            }
+          />
           <Route
             path='/account/profile'
             element={
@@ -100,6 +110,7 @@ const App = () => {
         </Routes>
       </main>
       <Footer />
+      <ChatbotWidget />
     </div>
   )
 }

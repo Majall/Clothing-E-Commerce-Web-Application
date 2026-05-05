@@ -2,17 +2,31 @@
 
 use App\Http\Controllers\Api\AccountNotificationController;
 use App\Http\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\LoyaltyPointsController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\PaymentMethodController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductEventController;
+use App\Http\Controllers\Api\ProductReviewController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\RecommendationController;
+use App\Http\Controllers\Api\TryOnController;
+use App\Http\Controllers\Api\VisualSearchController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/filters', [ProductController::class, 'filters']);
+Route::get('/products/{product}/reviews', [ProductReviewController::class, 'index']);
+Route::get('/recommendations', [RecommendationController::class, 'index']);
+Route::post('/visual-search', [VisualSearchController::class, 'search']);
+Route::get('/try-on/{product}', [TryOnController::class, 'show']);
+Route::post('/events', [ProductEventController::class, 'store']);
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/password/forgot', [PasswordResetController::class, 'requestReset']);
@@ -20,6 +34,8 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/products/{product}/reviews', [ProductReviewController::class, 'store']);
+
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
 
@@ -39,8 +55,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/payment-methods', [PaymentMethodController::class, 'store']);
     Route::delete('/payment-methods/{methodId}', [PaymentMethodController::class, 'destroy']);
 
+    Route::post('/payments/stripe', [PaymentController::class, 'stripeIntent']);
+    Route::post('/payments/paypal', [PaymentController::class, 'paypalIntent']);
+    Route::post('/payments/cod', [PaymentController::class, 'cashOnDelivery']);
+
     Route::get('/notifications', [AccountNotificationController::class, 'index']);
     Route::patch('/notifications/{notificationId}/read', [AccountNotificationController::class, 'markRead']);
 
     Route::get('/loyalty-points', [LoyaltyPointsController::class, 'show']);
+});
+
+Route::middleware(['auth:sanctum', 'role:admin,vendor'])->group(function () {
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::put('/products/{product}', [ProductController::class, 'update']);
+    Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+
+    Route::get('/inventory/alerts', [InventoryController::class, 'alerts']);
+    Route::get('/analytics', [AnalyticsController::class, 'summary']);
 });

@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
 import { useShop } from '../context/useShop'
 import { getCouponLabel, getShippingLabel } from '../utils/coupon'
 
-const PAYMENT_METHODS = ['Credit/Debit Card', 'Cash on Delivery', 'Bank Transfer', 'Digital Wallet']
+const PAYMENT_METHODS = ['Stripe', 'PayPal', 'Cash on Delivery']
 
 const PlaceOrder = () => {
   const { cartItems, subtotal, baseShipping, shipping, discount, total, coupon, user, placeOrder, defaultAddress } = useShop()
@@ -53,23 +53,23 @@ const PlaceOrder = () => {
         <PageHeader title='Checkout' subtitle='Enter shipping details and confirm payment method.' />
 
         {!user ? (
-          <div className='mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900'>
+          <div className='mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700/40 dark:bg-amber-900/30 dark:text-amber-100'>
             <p className='text-sm font-semibold'>Guest checkout enabled</p>
-            <p className='mt-1 text-amber-800'>
+            <p className='mt-1 text-amber-800 dark:text-amber-100'>
               You can place your order now or sign in to track it later.
             </p>
             <div className='mt-3 flex flex-wrap gap-2'>
               <button
                 type='button'
                 onClick={() => navigate('/login', { state: { redirectTo: '/placeorder' } })}
-                className='rounded-md border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100'
+                className='rounded-md border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 dark:border-amber-700 dark:text-amber-100 dark:hover:bg-amber-800/40'
               >
                 Login / Register
               </button>
               <button
                 type='button'
                 onClick={() => navigate('/collection')}
-                className='rounded-md border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100'
+                className='rounded-md border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 dark:border-amber-700 dark:text-amber-100 dark:hover:bg-amber-800/40'
               >
                 Continue shopping
               </button>
@@ -78,7 +78,7 @@ const PlaceOrder = () => {
         ) : null}
 
         {confirmation ? (
-          <div className='mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-900'>
+          <div className='mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-900 dark:border-green-700/40 dark:bg-green-900/30 dark:text-green-100'>
             <p className='text-base font-semibold'>Order confirmation</p>
             <p className='mt-1'>
               Order <span className='font-semibold'>{confirmation.id}</span> confirmed on{' '}
@@ -86,28 +86,28 @@ const PlaceOrder = () => {
             </p>
             <div className='mt-3 grid gap-4 md:grid-cols-2'>
               <div>
-                <p className='text-xs font-semibold uppercase text-green-800'>Shipping to</p>
+                <p className='text-xs font-semibold uppercase text-green-800 dark:text-green-200'>Shipping to</p>
                 <p className='mt-1'>{confirmation.shippingAddress.fullName}</p>
-                <p className='text-sm text-green-800'>
+                <p className='text-sm text-green-800 dark:text-green-200'>
                   {confirmation.shippingAddress.address}, {confirmation.shippingAddress.city},{' '}
                   {confirmation.shippingAddress.postalCode}
                 </p>
-                <p className='text-sm text-green-800'>{confirmation.shippingAddress.country}</p>
+                <p className='text-sm text-green-800 dark:text-green-200'>{confirmation.shippingAddress.country}</p>
               </div>
               <div>
-                <p className='text-xs font-semibold uppercase text-green-800'>Payment method</p>
+                <p className='text-xs font-semibold uppercase text-green-800 dark:text-green-200'>Payment method</p>
                 <p className='mt-1'>{confirmation.paymentMethod}</p>
-                <p className='mt-3 text-xs font-semibold uppercase text-green-800'>Total</p>
+                <p className='mt-3 text-xs font-semibold uppercase text-green-800 dark:text-green-200'>Total</p>
                 <p className='text-lg font-semibold'>৳{confirmation.total}</p>
               </div>
             </div>
             <div className='mt-4'>
-              <p className='text-xs font-semibold uppercase text-green-800'>Items</p>
-              <div className='mt-2 space-y-1 text-sm text-green-900'>
+              <p className='text-xs font-semibold uppercase text-green-800 dark:text-green-200'>Items</p>
+              <div className='mt-2 space-y-1 text-sm text-green-900 dark:text-green-100'>
                 {confirmation.items.map((item) => (
                   <div key={item.sku} className='flex justify-between'>
                     <span>
-                      {item.product.name} • Size {item.size} × {item.quantity}
+                      {item.product.name} • Size {item.size} {item.color ? `• ${item.color}` : ''} × {item.quantity}
                     </span>
                     <span>৳{item.lineTotal}</span>
                   </div>
@@ -118,7 +118,7 @@ const PlaceOrder = () => {
               <button
                 type='button'
                 onClick={() => navigate('/collection')}
-                className='rounded-md bg-green-700 px-4 py-2 text-xs font-semibold text-white hover:bg-green-800'
+                className='rounded-md bg-green-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-green-800'
               >
                 Continue shopping
               </button>
@@ -126,7 +126,7 @@ const PlaceOrder = () => {
                 <button
                   type='button'
                   onClick={() => navigate('/orders')}
-                  className='rounded-md border border-green-300 px-4 py-2 text-xs font-semibold text-green-900 hover:bg-green-100'
+                  className='rounded-md border border-green-300 px-4 py-2 text-xs font-semibold text-green-900 transition hover:bg-green-100 dark:border-green-700 dark:text-green-100 dark:hover:bg-green-800/40'
                 >
                   View orders
                 </button>
@@ -134,7 +134,7 @@ const PlaceOrder = () => {
                 <button
                   type='button'
                   onClick={() => navigate('/login', { state: { redirectTo: '/orders' } })}
-                  className='rounded-md border border-green-300 px-4 py-2 text-xs font-semibold text-green-900 hover:bg-green-100'
+                  className='rounded-md border border-green-300 px-4 py-2 text-xs font-semibold text-green-900 transition hover:bg-green-100 dark:border-green-700 dark:text-green-100 dark:hover:bg-green-800/40'
                 >
                   Create account to track orders
                 </button>
@@ -146,14 +146,14 @@ const PlaceOrder = () => {
         <form
           key={formKey}
           onSubmit={handleSubmit}
-          className='grid gap-3 rounded-lg border border-gray-200 bg-white p-5 md:grid-cols-2'
+          className='grid gap-3 rounded-lg border border-slate-200 bg-white p-5 md:grid-cols-2 dark:border-slate-800 dark:bg-slate-900'
         >
           <input
             required
             name='fullName'
             defaultValue={defaultAddress?.fullName || user?.name || ''}
             placeholder='Full name'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
           />
           <input
             required
@@ -161,48 +161,48 @@ const PlaceOrder = () => {
             name='email'
             defaultValue={user?.email || ''}
             placeholder='Email'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
           />
           <input
             required
             name='phone'
             defaultValue={defaultAddress?.phone || ''}
             placeholder='Phone'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
           />
           <input
             required
             name='city'
             defaultValue={defaultAddress?.city || ''}
             placeholder='City'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
           />
           <input
             required
             name='address'
             defaultValue={defaultAddress?.line1 || ''}
             placeholder='Street address'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none md:col-span-2'
+            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none md:col-span-2 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
           />
           <input
             required
             name='postalCode'
             defaultValue={defaultAddress?.postalCode || ''}
             placeholder='Postal code'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
           />
           <input
             required
             name='country'
             defaultValue={defaultAddress?.country || ''}
             placeholder='Country'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
           />
 
           <select
             name='paymentMethod'
             defaultValue='Cash on Delivery'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none md:col-span-2'
+            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none md:col-span-2 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
           >
             {PAYMENT_METHODS.map((method) => (
               <option key={method} value={method}>
@@ -214,28 +214,32 @@ const PlaceOrder = () => {
           <button
             type='submit'
             disabled={isSubmitting || cartItems.length === 0}
-            className='rounded-md bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400 md:col-span-2'
+            className='rounded-md bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 md:col-span-2 dark:bg-white dark:text-slate-900'
           >
             {isSubmitting ? 'Placing order...' : 'Place order'}
           </button>
 
           {status.message ? (
-            <p className={`text-sm md:col-span-2 ${status.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
+            <p
+              className={`text-sm md:col-span-2 ${
+                status.type === 'success' ? 'text-green-700 dark:text-green-400' : 'text-red-600'
+              }`}
+            >
               {status.message}
             </p>
           ) : null}
         </form>
       </section>
 
-      <aside className='h-fit rounded-lg border border-gray-200 bg-white p-5'>
-        <h2 className='text-lg font-semibold text-gray-900'>Order summary</h2>
-        <div className='mt-4 space-y-2 text-sm'>
+      <aside className='h-fit rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900'>
+        <h2 className='text-lg font-semibold text-slate-900 dark:text-white'>Order summary</h2>
+        <div className='mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300'>
           <div className='flex justify-between'>
             <span>Items ({cartItems.length})</span>
             <span>৳{subtotal}</span>
           </div>
           {coupon ? (
-            <div className='flex justify-between text-green-700'>
+            <div className='flex justify-between text-green-700 dark:text-green-400'>
               <span>Coupon ({coupon.code})</span>
               <span>{getCouponLabel(coupon, discount)}</span>
             </div>
@@ -244,7 +248,7 @@ const PlaceOrder = () => {
             <span>Shipping</span>
             <span>{getShippingLabel({ shipping, coupon, baseShipping })}</span>
           </div>
-          <div className='flex justify-between border-t border-gray-200 pt-2 text-base font-bold'>
+          <div className='flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900 dark:border-slate-700 dark:text-white'>
             <span>Total</span>
             <span>৳{total}</span>
           </div>

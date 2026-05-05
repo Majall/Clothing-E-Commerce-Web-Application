@@ -17,8 +17,12 @@ class Order extends Model
         'payment_method',
         'subtotal',
         'shipping',
+        'discount',
         'total',
         'status',
+        'tracking_number',
+        'carrier',
+        'status_history',
     ];
 
     protected function casts(): array
@@ -27,7 +31,9 @@ class Order extends Model
             'shipping_address' => 'array',
             'subtotal' => 'integer',
             'shipping' => 'integer',
+            'discount' => 'integer',
             'total' => 'integer',
+            'status_history' => 'array',
         ];
     }
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { products as localProducts } from '../assets/frontend_assets/assets'
 import { featureFlags } from '../config/features'
 import { api } from '../services/api'
+import { enhanceProduct } from '../utils/productEnhancers'
 import { ShopContext } from './context'
 
 const CART_STORAGE_KEY = 'shop_cart_v1'
@@ -13,6 +14,7 @@ const WISHLIST_STORAGE_KEY = 'shop_wishlist_v1'
 const PAYMENT_STORAGE_KEY = 'shop_payment_methods_v1'
 const NOTIFICATION_STORAGE_KEY = 'shop_notifications_v1'
 const LOYALTY_STORAGE_KEY = 'shop_loyalty_points_v1'
+const RECENTLY_VIEWED_STORAGE_KEY = 'shop_recently_viewed_v1'
 const FREE_SHIPPING_THRESHOLD = 500
 const STANDARD_SHIPPING_FEE = 40
 const AVAILABLE_COUPONS = [
@@ -42,6 +44,7 @@ export const ShopProvider = ({ children }) => {
   const [paymentMethods, setPaymentMethods] = useState(() => parseStored(PAYMENT_STORAGE_KEY, []))
   const [notifications, setNotifications] = useState(() => parseStored(NOTIFICATION_STORAGE_KEY, []))
   const [loyaltyPoints, setLoyaltyPoints] = useState(() => parseStored(LOYALTY_STORAGE_KEY, 0))
+  const [recentlyViewed, setRecentlyViewed] = useState(() => parseStored(RECENTLY_VIEWED_STORAGE_KEY, []))
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [ordersLoading, setOrdersLoading] = useState(false)
@@ -53,10 +56,11 @@ export const ShopProvider = ({ children }) => {
     const loadProducts = async () => {
       try {
         const remoteProducts = await api.getProducts()
-        setProducts(remoteProducts.length ? remoteProducts : localProducts)
+        const source = remoteProducts.length ? remoteProducts : localProducts
+        setProducts(source.map((item) => enhanceProduct(item)))
       } catch {
         setError('Unable to load products from API. Showing local catalog.')
-        setProducts(localProducts)
+        setProducts(localProducts.map((item) => enhanceProduct(item)))
       } finally {
         setIsLoading(false)
       }
@@ -101,18 +105,25 @@ export const ShopProvider = ({ children }) => {
     }
   }, [addresses, wishlistItems, paymentMethods, notifications, loyaltyPoints, hasApiSession])
 
+  useEffect(() => {
+    localStorage.setItem(RECENTLY_VIEWED_STORAGE_KEY, JSON.stringify(recentlyViewed))
+  }, [recentlyViewed])
+
   const cartItems = useMemo(
     () =>
       Object.entries(cart)
         .map(([sku, quantity]) => {
-          const [productId, size] = sku.split('|')
+          const [productId, size, color] = sku.split('|')
           const product = products.find((item) => item._id === productId)
           if (!product) return null
+
+          const normalizedColor = !color || color === 'default' ? product.colors?.[0] || '' : color
 
           return {
             sku,
             productId,
             size,
+            color: normalizedColor,
             quantity,
             product,
             lineTotal: product.price * quantity,
@@ -159,9 +170,66 @@ export const ShopProvider = ({ children }) => {
 
   const defaultAddress = useMemo(() => addresses.find((item) => item.isDefault), [addresses])
 
-  const addToCart = (productId, size, quantity = 1) => {
+  const availableFilters = useMemo(() => {
+    const colors = new Set()
+    const fabrics = new Set()
+    const styleTags = new Set()
+    let minPrice = Number.POSITIVE_INFINITY
+    let maxPrice = 0
+
+    products.forEach((product) => {
+      product.colors?.forEach((color) => colors.add(color))
+      product.styleTags?.forEach((tag) => styleTags.add(tag))
+      if (product.fabric) fabrics.add(product.fabric)
+      minPrice = Math.min(minPrice, product.price)
+      maxPrice = Math.max(maxPrice, product.price)
+    })
+
+    return {
+      colors: [...colors],
+      fabrics: [...fabrics],
+      styleTags: [...styleTags],
+      minPrice: Number.isFinite(minPrice) ? minPrice : 0,
+      maxPrice,
+    }
+  }, [products])
+
+  const recordProductView = (productId) => {
+    if (!productId) return
+    setRecentlyViewed((prev) => {
+      const next = [productId, ...prev.filter((id) => id !== productId)]
+      return next.slice(0, 10)
+    })
+
+    if (api.isEnabled) {
+      api
+        .trackEvent({ productId, eventType: 'view' })
+        .catch(() => {})
+    }
+  }
+
+  const getRecommendations = (baseProduct) => {
+    if (!products.length) return []
+    if (!baseProduct) {
+      const viewed = recentlyViewed.map((id) => products.find((item) => item._id === id)).filter(Boolean)
+      if (viewed.length) {
+        return viewed
+      }
+      return products.filter((item) => item.bestseller).slice(0, 6)
+    }
+
+    const related = products.filter(
+      (item) =>
+        item._id !== baseProduct._id &&
+        (item.category === baseProduct.category ||
+          item.styleTags?.some((tag) => baseProduct.styleTags?.includes(tag))),
+    )
+    return related.slice(0, 6)
+  }
+
+  const addToCart = (productId, size, quantity = 1, color = '') => {
     if (!size || quantity < 1) return
-    const sku = `${productId}|${size}`
+    const sku = `${productId}|${size}|${color || 'default'}`
 
     setCart((prev) => ({
       ...prev,
@@ -602,6 +670,16 @@ export const ShopProvider = ({ children }) => {
       total,
       coupon: coupon ? { code: coupon.code, type: coupon.type, value: coupon.value } : null,
       status: 'Confirmed',
+      tracking: {
+        carrier: 'Express Logistics',
+        trackingNumber: `TRK-${Math.floor(Math.random() * 999999)}`,
+        eta: new Date(Date.now() + 4 * 86400000).toISOString(),
+        history: [
+          { status: 'Order confirmed', at: new Date().toISOString() },
+          { status: 'Preparing shipment', at: new Date(Date.now() + 86400000).toISOString() },
+          { status: 'Out for delivery', at: new Date(Date.now() + 3 * 86400000).toISOString() },
+        ],
+      },
     }
 
     const finalizeOrder = (finalOrder) => {
@@ -620,15 +698,16 @@ export const ShopProvider = ({ children }) => {
     }
 
     try {
-      const createdOrder = await api.placeOrder({
-        shippingAddress,
-        paymentMethod,
-        items: cartItems.map((item) => ({
-          productId: item.productId,
-          size: item.size,
-          quantity: item.quantity,
-        })),
-      })
+        const createdOrder = await api.placeOrder({
+          shippingAddress,
+          paymentMethod,
+          items: cartItems.map((item) => ({
+            productId: item.productId,
+            size: item.size,
+            color: item.color,
+            quantity: item.quantity,
+          })),
+        })
       return finalizeOrder(createdOrder || orderPayload)
     } catch (error) {
       const status = error && typeof error === 'object' && 'status' in error ? error.status : null
@@ -709,6 +788,10 @@ export const ShopProvider = ({ children }) => {
     shipping,
     discount,
     total,
+    availableFilters,
+    recentlyViewed,
+    recordProductView,
+    getRecommendations,
     addToCart,
     updateCartQuantity,
     removeFromCart,

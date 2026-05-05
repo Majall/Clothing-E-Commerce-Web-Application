@@ -43,6 +43,48 @@ export const api = {
     const data = await request('/products')
     return data?.products || []
   },
+  async getProductFilters() {
+    const data = await request('/products/filters')
+    return data || null
+  },
+  async getProductReviews(productId) {
+    const data = await request(`/products/${productId}/reviews`)
+    return data?.reviews || []
+  },
+  async createProductReview(productId, payload) {
+    const data = await request(`/products/${productId}/reviews`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    return data?.review || null
+  },
+  async getRecommendations(params = {}) {
+    const query = new URLSearchParams(params).toString()
+    const data = await request(`/recommendations${query ? `?${query}` : ''}`)
+    return data?.products || []
+  },
+  async visualSearch(payload) {
+    const data = await request('/visual-search', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    return data?.matches || []
+  },
+  async getTryOnAssets(productId) {
+    const data = await request(`/try-on/${productId}`)
+    return data || null
+  },
+  async trackEvent(payload) {
+    const data = await request('/events', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    return data || null
+  },
+  async getAnalytics() {
+    const data = await request('/analytics')
+    return data || null
+  },
   async login(payload) {
     const data = await request('/auth/login', {
       method: 'POST',
