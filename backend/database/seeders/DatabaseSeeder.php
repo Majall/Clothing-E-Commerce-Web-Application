@@ -17,12 +17,23 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(ProductSeeder::class);
+        $this->call(PricingRuleSeeder::class);
 
         User::updateOrCreate(
             ['email' => 'test@example.com'],
             [
                 'name' => 'Test User',
                 'password' => Hash::make('password123'),
+                'role' => 'user',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('adminpassword'),
+                'role' => 'admin',
             ]
         );
     }

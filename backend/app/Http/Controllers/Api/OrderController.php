@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\AccountNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +37,7 @@ class OrderController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.productId' => ['required', 'string', 'exists:products,id'],
             'items.*.size' => ['required', 'string', 'max:50'],
+            'items.*.color' => ['nullable', 'string', 'max:50'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ]);
 
@@ -60,6 +62,7 @@ class OrderController extends Controller
             return [
                 'product_id' => $product->id,
                 'size' => $item['size'],
+                'color' => $item['color'] ?? null,
                 'quantity' => $quantity,
                 'unit_price' => $unitPrice,
                 'line_total' => $unitPrice * $quantity,
@@ -71,6 +74,7 @@ class OrderController extends Controller
         $total = $subtotal + $shipping;
 
         $order = DB::transaction(function () use ($user, $payload, $normalizedItems, $subtotal, $shipping, $total) {
+            $now = now();
             $order = Order::query()->create([
                 'user_id' => $user->id,
                 'order_number' => 'ORD-'.now()->timestamp.'-'.str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT),
@@ -78,11 +82,26 @@ class OrderController extends Controller
                 'payment_method' => $payload['paymentMethod'],
                 'subtotal' => $subtotal,
                 'shipping' => $shipping,
+                'discount' => 0,
                 'total' => $total,
                 'status' => 'Confirmed',
+                'tracking_number' => 'TRK-'.str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT),
+                'carrier' => 'Express Logistics',
+                'status_history' => [
+                    ['status' => 'Order confirmed', 'at' => $now->toIso8601String()],
+                    ['status' => 'Preparing shipment', 'at' => $now->copy()->addDay()->toIso8601String()],
+                    ['status' => 'Out for delivery', 'at' => $now->copy()->addDays(3)->toIso8601String()],
+                ],
             ]);
 
             $order->items()->createMany($normalizedItems->all());
+
+            AccountNotification::query()->create([
+                'user_id' => $user->id,
+                'title' => 'Order confirmed',
+                'body' => sprintf('Order %s has been confirmed and is being prepared.', $order->order_number),
+                'type' => 'order',
+            ]);
 
             return $order->load(['items.product', 'user']);
         });
@@ -104,9 +123,10 @@ class OrderController extends Controller
             ],
             'items' => $order->items->map(function ($item) {
                 return [
-                    'sku' => $item->product_id.'|'.$item->size,
+                    'sku' => $item->product_id.'|'.$item->size.'|'.($item->color ?? 'default'),
                     'productId' => $item->product_id,
                     'size' => $item->size,
+                    'color' => $item->color,
                     'quantity' => $item->quantity,
                     'product' => $item->product->toFrontendArray(),
                     'lineTotal' => $item->line_total,
@@ -115,9 +135,15 @@ class OrderController extends Controller
             'shippingAddress' => $order->shipping_address,
             'paymentMethod' => $order->payment_method,
             'subtotal' => $order->subtotal,
+            'discount' => $order->discount,
             'shipping' => $order->shipping,
             'total' => $order->total,
             'status' => $order->status,
+            'tracking' => [
+                'trackingNumber' => $order->tracking_number,
+                'carrier' => $order->carrier,
+                'history' => $order->status_history ?? [],
+            ],
         ];
     }
 }
