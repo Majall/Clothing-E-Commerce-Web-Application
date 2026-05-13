@@ -53,23 +53,21 @@ const PlaceOrder = () => {
         <PageHeader title='Checkout' subtitle='Enter shipping details and confirm payment method.' />
 
         {!user ? (
-          <div className='mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700/40 dark:bg-amber-900/30 dark:text-amber-100'>
+          <div className='mb-6 rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm text-warning'>
             <p className='text-sm font-semibold'>Guest checkout enabled</p>
-            <p className='mt-1 text-amber-800 dark:text-amber-100'>
-              You can place your order now or sign in to track it later.
-            </p>
+            <p className='mt-1'>You can place your order now or sign in to track it later.</p>
             <div className='mt-3 flex flex-wrap gap-2'>
               <button
                 type='button'
                 onClick={() => navigate('/login', { state: { redirectTo: '/placeorder' } })}
-                className='rounded-md border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 dark:border-amber-700 dark:text-amber-100 dark:hover:bg-amber-800/40'
+                className='btn btn-outline px-3 py-2 text-xs text-warning'
               >
                 Login / Register
               </button>
               <button
                 type='button'
                 onClick={() => navigate('/collection')}
-                className='rounded-md border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 dark:border-amber-700 dark:text-amber-100 dark:hover:bg-amber-800/40'
+                className='btn btn-outline px-3 py-2 text-xs text-warning'
               >
                 Continue shopping
               </button>
@@ -78,7 +76,7 @@ const PlaceOrder = () => {
         ) : null}
 
         {confirmation ? (
-          <div className='mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-900 dark:border-green-700/40 dark:bg-green-900/30 dark:text-green-100'>
+          <div className='mb-6 rounded-lg border border-success/30 bg-success/10 p-4 text-sm text-success'>
             <p className='text-base font-semibold'>Order confirmation</p>
             <p className='mt-1'>
               Order <span className='font-semibold'>{confirmation.id}</span> confirmed on{' '}
@@ -86,24 +84,24 @@ const PlaceOrder = () => {
             </p>
             <div className='mt-3 grid gap-4 md:grid-cols-2'>
               <div>
-                <p className='text-xs font-semibold uppercase text-green-800 dark:text-green-200'>Shipping to</p>
+                <p className='text-xs font-semibold uppercase'>Shipping to</p>
                 <p className='mt-1'>{confirmation.shippingAddress.fullName}</p>
-                <p className='text-sm text-green-800 dark:text-green-200'>
+                <p className='text-sm'>
                   {confirmation.shippingAddress.address}, {confirmation.shippingAddress.city},{' '}
                   {confirmation.shippingAddress.postalCode}
                 </p>
-                <p className='text-sm text-green-800 dark:text-green-200'>{confirmation.shippingAddress.country}</p>
+                <p className='text-sm'>{confirmation.shippingAddress.country}</p>
               </div>
               <div>
-                <p className='text-xs font-semibold uppercase text-green-800 dark:text-green-200'>Payment method</p>
+                <p className='text-xs font-semibold uppercase'>Payment method</p>
                 <p className='mt-1'>{confirmation.paymentMethod}</p>
-                <p className='mt-3 text-xs font-semibold uppercase text-green-800 dark:text-green-200'>Total</p>
+                <p className='mt-3 text-xs font-semibold uppercase'>Total</p>
                 <p className='text-lg font-semibold'>৳{confirmation.total}</p>
               </div>
             </div>
             <div className='mt-4'>
-              <p className='text-xs font-semibold uppercase text-green-800 dark:text-green-200'>Items</p>
-              <div className='mt-2 space-y-1 text-sm text-green-900 dark:text-green-100'>
+              <p className='text-xs font-semibold uppercase'>Items</p>
+              <div className='mt-2 space-y-1 text-sm'>
                 {confirmation.items.map((item) => (
                   <div key={item.sku} className='flex justify-between'>
                     <span>
@@ -118,7 +116,7 @@ const PlaceOrder = () => {
               <button
                 type='button'
                 onClick={() => navigate('/collection')}
-                className='rounded-md bg-green-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-green-800'
+                className='btn btn-success px-4 py-2 text-xs'
               >
                 Continue shopping
               </button>
@@ -126,7 +124,7 @@ const PlaceOrder = () => {
                 <button
                   type='button'
                   onClick={() => navigate('/orders')}
-                  className='rounded-md border border-green-300 px-4 py-2 text-xs font-semibold text-green-900 transition hover:bg-green-100 dark:border-green-700 dark:text-green-100 dark:hover:bg-green-800/40'
+                  className='btn btn-outline px-4 py-2 text-xs text-success'
                 >
                   View orders
                 </button>
@@ -134,7 +132,7 @@ const PlaceOrder = () => {
                 <button
                   type='button'
                   onClick={() => navigate('/login', { state: { redirectTo: '/orders' } })}
-                  className='rounded-md border border-green-300 px-4 py-2 text-xs font-semibold text-green-900 transition hover:bg-green-100 dark:border-green-700 dark:text-green-100 dark:hover:bg-green-800/40'
+                  className='btn btn-outline px-4 py-2 text-xs text-success'
                 >
                   Create account to track orders
                 </button>
@@ -146,14 +144,14 @@ const PlaceOrder = () => {
         <form
           key={formKey}
           onSubmit={handleSubmit}
-          className='grid gap-3 rounded-lg border border-slate-200 bg-white p-5 md:grid-cols-2 dark:border-slate-800 dark:bg-slate-900'
+          className='grid gap-3 rounded-2xl border border-border bg-card p-5 md:grid-cols-2'
         >
           <input
             required
             name='fullName'
             defaultValue={defaultAddress?.fullName || user?.name || ''}
             placeholder='Full name'
-            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+            className='input'
           />
           <input
             required
@@ -161,48 +159,48 @@ const PlaceOrder = () => {
             name='email'
             defaultValue={user?.email || ''}
             placeholder='Email'
-            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+            className='input'
           />
           <input
             required
             name='phone'
             defaultValue={defaultAddress?.phone || ''}
             placeholder='Phone'
-            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+            className='input'
           />
           <input
             required
             name='city'
             defaultValue={defaultAddress?.city || ''}
             placeholder='City'
-            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+            className='input'
           />
           <input
             required
             name='address'
             defaultValue={defaultAddress?.line1 || ''}
             placeholder='Street address'
-            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none md:col-span-2 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+            className='input md:col-span-2'
           />
           <input
             required
             name='postalCode'
             defaultValue={defaultAddress?.postalCode || ''}
             placeholder='Postal code'
-            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+            className='input'
           />
           <input
             required
             name='country'
             defaultValue={defaultAddress?.country || ''}
             placeholder='Country'
-            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+            className='input'
           />
 
           <select
             name='paymentMethod'
             defaultValue='Cash on Delivery'
-            className='rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none md:col-span-2 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+            className='input md:col-span-2'
           >
             {PAYMENT_METHODS.map((method) => (
               <option key={method} value={method}>
@@ -214,7 +212,7 @@ const PlaceOrder = () => {
           <button
             type='submit'
             disabled={isSubmitting || cartItems.length === 0}
-            className='rounded-md bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 md:col-span-2 dark:bg-white dark:text-slate-900'
+            className='btn btn-primary px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2'
           >
             {isSubmitting ? 'Placing order...' : 'Place order'}
           </button>
@@ -222,7 +220,7 @@ const PlaceOrder = () => {
           {status.message ? (
             <p
               className={`text-sm md:col-span-2 ${
-                status.type === 'success' ? 'text-green-700 dark:text-green-400' : 'text-red-600'
+                status.type === 'success' ? 'text-success' : 'text-destructive'
               }`}
             >
               {status.message}
@@ -231,15 +229,15 @@ const PlaceOrder = () => {
         </form>
       </section>
 
-      <aside className='h-fit rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900'>
-        <h2 className='text-lg font-semibold text-slate-900 dark:text-white'>Order summary</h2>
-        <div className='mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300'>
+      <aside className='h-fit rounded-2xl border border-border bg-card p-5 shadow-sm'>
+        <h2 className='text-lg font-semibold text-foreground'>Order summary</h2>
+        <div className='mt-4 space-y-2 text-sm text-muted'>
           <div className='flex justify-between'>
             <span>Items ({cartItems.length})</span>
             <span>৳{subtotal}</span>
           </div>
           {coupon ? (
-            <div className='flex justify-between text-green-700 dark:text-green-400'>
+            <div className='flex justify-between text-success'>
               <span>Coupon ({coupon.code})</span>
               <span>{getCouponLabel(coupon, discount)}</span>
             </div>
@@ -248,7 +246,7 @@ const PlaceOrder = () => {
             <span>Shipping</span>
             <span>{getShippingLabel({ shipping, coupon, baseShipping })}</span>
           </div>
-          <div className='flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900 dark:border-slate-700 dark:text-white'>
+          <div className='flex justify-between border-t border-border pt-2 text-base font-semibold text-foreground'>
             <span>Total</span>
             <span>৳{total}</span>
           </div>

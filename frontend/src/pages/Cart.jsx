@@ -34,20 +34,20 @@ const Cart = () => {
 
   if (!cartItems.length) {
     return (
-      <EmptyState
-        title='Your cart is empty'
-        description='Browse our collection and add products to continue.'
-        action={
-          <Link
-            to='/collection'
-            className='inline-block rounded-md bg-slate-900 px-5 py-2.5 text-sm text-white dark:bg-white dark:text-slate-900'
-          >
-            Start shopping
-          </Link>
-        }
-      />
-    )
-  }
+        <EmptyState
+          title='Your cart is empty'
+          description='Browse our collection and add products to continue.'
+          action={
+            <Link
+              to='/collection'
+              className='btn btn-primary inline-block px-5 py-2.5 text-sm'
+            >
+              Start shopping
+            </Link>
+          }
+        />
+      )
+    }
 
   return (
     <div>
@@ -57,20 +57,26 @@ const Cart = () => {
         {cartItems.map((item) => (
           <article
             key={item.sku}
-            className='grid gap-4 rounded-lg border border-slate-200 bg-white p-4 md:grid-cols-[96px_1fr_auto] md:items-center dark:border-slate-800 dark:bg-slate-900'
+            className='panel grid gap-4 p-4 md:grid-cols-[96px_1fr_auto] md:items-center'
           >
-            <img src={item.product.image[0]} alt={item.product.name} className='h-24 w-24 rounded-md object-cover' />
+            <img
+              src={item.product.image[0]}
+              alt={item.product.name}
+              className='h-24 w-24 rounded-md object-cover'
+              loading='lazy'
+              decoding='async'
+            />
             <div>
-              <h2 className='font-semibold text-slate-900 dark:text-white'>{item.product.name}</h2>
-              <p className='text-sm text-slate-600 dark:text-slate-300'>
+              <h2 className='font-semibold text-foreground'>{item.product.name}</h2>
+              <p className='text-sm text-muted'>
                 Size: {item.size} {item.color ? `• Color: ${item.color}` : ''}
               </p>
-              <p className='mt-1 font-semibold text-slate-900 dark:text-white'>৳{item.product.price}</p>
+              <p className='mt-1 font-semibold text-foreground'>৳{item.product.price}</p>
             </div>
             <div className='flex items-center gap-3'>
               <QuantityInput value={item.quantity} onChange={(value) => updateCartQuantity(item.sku, value)} />
               <button
-                className='rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-500/40 dark:hover:bg-red-500/10'
+                className='btn btn-destructive px-3 py-2 text-xs'
                 onClick={() => removeFromCart(item.sku)}
               >
                 Remove
@@ -80,15 +86,15 @@ const Cart = () => {
         ))}
       </div>
 
-      <aside className='mt-8 ml-auto max-w-md rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900'>
-        <h3 className='text-lg font-semibold text-slate-900 dark:text-white'>Order summary</h3>
-        <div className='mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300'>
+      <aside className='mt-8 ml-auto max-w-md rounded-2xl border border-border bg-card p-5 shadow-sm'>
+        <h3 className='text-lg font-semibold text-foreground'>Order summary</h3>
+        <div className='mt-4 space-y-2 text-sm text-muted'>
           <div className='flex justify-between'>
             <span>Subtotal</span>
             <span>৳{subtotal}</span>
           </div>
           {coupon ? (
-            <div className='flex justify-between text-green-700 dark:text-green-400'>
+            <div className='flex justify-between text-success'>
               <span>Coupon ({coupon.code})</span>
               <span>{getCouponLabel(coupon, discount)}</span>
             </div>
@@ -97,31 +103,31 @@ const Cart = () => {
             <span>Shipping</span>
             <span>{getShippingLabel({ shipping, coupon, baseShipping })}</span>
           </div>
-          <div className='flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900 dark:border-slate-700 dark:text-white'>
+          <div className='flex justify-between border-t border-border pt-2 text-base font-semibold text-foreground'>
             <span>Total</span>
             <span>৳{total}</span>
           </div>
         </div>
 
         <div className='mt-5 space-y-2'>
-          <p className='text-sm font-semibold text-slate-800 dark:text-slate-200'>Apply coupon</p>
+          <p className='text-sm font-semibold text-foreground'>Apply coupon</p>
           <div className='flex gap-2'>
             <input
               value={couponCode}
               onChange={(event) => setCouponCode(event.target.value)}
               placeholder='Enter coupon code'
-              className='flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+              className='input flex-1'
             />
             <button
               type='button'
               onClick={handleApplyCoupon}
-              className='rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+              className='btn btn-outline px-4 py-2 text-sm'
             >
               Apply
             </button>
           </div>
           {coupon ? (
-            <div className='flex items-center justify-between text-xs text-green-700 dark:text-green-400'>
+            <div className='flex items-center justify-between text-xs text-success'>
               <span>{coupon.code} applied</span>
               <button
                 type='button'
@@ -129,7 +135,7 @@ const Cart = () => {
                   removeCoupon()
                   setCouponStatus({ type: 'success', message: 'Coupon removed.' })
                 }}
-                className='font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
+                className='font-semibold text-foreground hover:text-primary'
               >
                 Remove
               </button>
@@ -137,7 +143,7 @@ const Cart = () => {
           ) : null}
           {couponStatus?.message ? (
             <p
-              className={`text-xs ${couponStatus.type === 'success' ? 'text-green-700 dark:text-green-400' : 'text-red-600'}`}
+              className={`text-xs ${couponStatus.type === 'success' ? 'text-success' : 'text-destructive'}`}
             >
               {couponStatus.message}
             </p>
@@ -147,13 +153,13 @@ const Cart = () => {
         <div className='mt-6 space-y-2'>
           <button
             onClick={() => navigate('/placeorder')}
-            className='w-full rounded-md bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900'
+            className='btn btn-primary w-full px-4 py-3 text-sm'
           >
             Continue to Checkout
           </button>
           <Link
             to='/collection'
-            className='block w-full rounded-md border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+            className='btn btn-outline block w-full px-4 py-3 text-center text-sm'
           >
             Continue shopping
           </Link>

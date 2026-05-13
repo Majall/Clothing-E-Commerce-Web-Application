@@ -48,8 +48,8 @@ const PasswordReset = () => {
       title='Password reset'
       subtitle='Request a reset link or enter the token you received.'
     >
-      <section className='rounded-lg border border-gray-200 bg-white p-5'>
-        <h2 className='text-lg font-semibold text-gray-900'>Request a reset token</h2>
+      <section className='card p-5'>
+        <h2 className='text-lg font-semibold text-foreground'>Request a reset token</h2>
         <form onSubmit={handleRequest} className='mt-4 flex flex-col gap-3 sm:flex-row'>
           <input
             required
@@ -57,27 +57,27 @@ const PasswordReset = () => {
             value={requestEmail}
             onChange={(event) => setRequestEmail(event.target.value)}
             placeholder='Email address'
-            className='flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input flex-1'
           />
           <button
             type='submit'
-            className='rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800'
+            className='btn btn-primary px-4 py-2 text-sm'
           >
             Send reset token
           </button>
         </form>
         {requestStatus.message ? (
-          <p className={`mt-3 text-sm ${requestStatus.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
+          <p className={`mt-3 text-sm ${requestStatus.type === 'success' ? 'text-success' : 'text-destructive'}`}>
             {requestStatus.message}
             {requestStatus.token ? (
-              <span className='mt-2 block text-xs text-gray-500'>Token: {requestStatus.token}</span>
+              <span className='mt-2 block text-xs text-muted'>Token: {requestStatus.token}</span>
             ) : null}
           </p>
         ) : null}
       </section>
 
-      <section className='rounded-lg border border-gray-200 bg-white p-5'>
-        <h2 className='text-lg font-semibold text-gray-900'>Set a new password</h2>
+      <section className='card p-5'>
+        <h2 className='text-lg font-semibold text-foreground'>Set a new password</h2>
         <form onSubmit={handleReset} className='mt-4 grid gap-3 md:grid-cols-2'>
           <input
             required
@@ -85,14 +85,14 @@ const PasswordReset = () => {
             value={resetForm.email}
             onChange={(event) => updateResetField('email', event.target.value)}
             placeholder='Email address'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
             value={resetForm.token}
             onChange={(event) => updateResetField('token', event.target.value)}
             placeholder='Reset token'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
@@ -100,7 +100,7 @@ const PasswordReset = () => {
             value={resetForm.password}
             onChange={(event) => updateResetField('password', event.target.value)}
             placeholder='New password'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
@@ -108,16 +108,18 @@ const PasswordReset = () => {
             value={resetForm.passwordConfirmation}
             onChange={(event) => updateResetField('passwordConfirmation', event.target.value)}
             placeholder='Confirm password'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <button
             type='submit'
-            className='rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 md:col-span-2'
+            className='btn btn-primary px-4 py-2 text-sm md:col-span-2'
           >
             Reset password
           </button>
           {resetStatus.message ? (
-            <p className={`text-sm md:col-span-2 ${resetStatus.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
+            <p
+              className={`text-sm md:col-span-2 ${resetStatus.type === 'success' ? 'text-success' : 'text-destructive'}`}
+            >
               {resetStatus.message}
             </p>
           ) : null}

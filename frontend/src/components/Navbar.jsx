@@ -17,19 +17,19 @@ const Navbar = () => {
   ]
 
   return (
-    <header className='sticky top-0 z-10 mb-6 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90'>
+    <header className='sticky top-0 z-20 mb-6 border-b border-border bg-background/90 backdrop-blur shadow-sm'>
       <div className='mx-auto flex max-w-7xl items-center justify-between gap-4 py-4'>
         <button className='cursor-pointer' onClick={() => navigate('/')}>
           <img src={assets.logo} className='w-32' alt='E-Commerce Web logo' />
         </button>
 
-        <nav className='hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex dark:text-slate-300'>
+        <nav className='hidden items-center gap-5 text-sm font-medium text-muted md:flex'>
           {navLinks.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `transition hover:text-slate-900 dark:hover:text-white ${isActive ? 'text-slate-900 underline underline-offset-4 dark:text-white' : ''}`
+                `transition hover:text-foreground ${isActive ? 'text-foreground underline underline-offset-4' : ''}`
               }
             >
               {item.label}
@@ -40,13 +40,13 @@ const Navbar = () => {
         <div className='flex items-center gap-3'>
           <ThemeToggle />
           <button
-            className='relative cursor-pointer rounded-md p-2 transition hover:bg-slate-100 dark:hover:bg-slate-800'
+            className='relative cursor-pointer rounded-md p-2 transition hover:bg-accent'
             onClick={() => navigate('/cart')}
             aria-label='Open cart'
           >
             <img src={assets.cart_icon} alt='' className='h-5 w-5' />
             {cartCount > 0 ? (
-              <span className='absolute -right-1 -top-1 rounded-full bg-slate-900 px-1.5 text-xs text-white dark:bg-slate-100 dark:text-slate-900'>
+              <span className='absolute -right-1 -top-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground'>
                 {cartCount}
               </span>
             ) : null}
@@ -55,14 +55,14 @@ const Navbar = () => {
           {user ? (
             <button
               onClick={logout}
-              className='rounded-md border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+              className='btn btn-outline px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted'
             >
               Logout
             </button>
           ) : (
             <button
               onClick={() => navigate('/login')}
-              className='rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white'
+              className='btn btn-primary px-4 py-2 text-xs font-semibold uppercase tracking-wide'
             >
               Login
             </button>

@@ -39,8 +39,8 @@ const Wishlist = () => {
 
   return (
     <AccountLayout title='Wishlist' subtitle='Save items you want to buy later.'>
-      <section className='rounded-lg border border-gray-200 bg-white p-5'>
-        <h2 className='text-lg font-semibold text-gray-900'>Add a product</h2>
+      <section className='card p-5'>
+        <h2 className='text-lg font-semibold text-foreground'>Add a product</h2>
         <form onSubmit={handleAdd} className='mt-4 grid gap-3 md:grid-cols-2'>
           <select
             required
@@ -48,7 +48,7 @@ const Wishlist = () => {
             onChange={(event) =>
               setSelection({ productId: event.target.value, size: '' })
             }
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           >
             <option value=''>Select a product</option>
             {products.map((product) => (
@@ -61,7 +61,7 @@ const Wishlist = () => {
             required
             value={selection.size}
             onChange={(event) => setSelection((prev) => ({ ...prev, size: event.target.value }))}
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           >
             <option value=''>Select a size</option>
             {(selectedProduct?.sizes || []).map((size) => (
@@ -72,20 +72,22 @@ const Wishlist = () => {
           </select>
           <button
             type='submit'
-            className='rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 md:col-span-2'
+            className='btn btn-primary px-4 py-2 text-sm md:col-span-2'
           >
             Add to wishlist
           </button>
           {status.message ? (
-            <p className={`text-sm md:col-span-2 ${status.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
+            <p
+              className={`text-sm md:col-span-2 ${status.type === 'success' ? 'text-success' : 'text-destructive'}`}
+            >
               {status.message}
             </p>
           ) : null}
         </form>
       </section>
 
-      <section className='rounded-lg border border-gray-200 bg-white p-5'>
-        <h2 className='text-lg font-semibold text-gray-900'>Saved items</h2>
+      <section className='card p-5'>
+        <h2 className='text-lg font-semibold text-foreground'>Saved items</h2>
         {wishlistItems.length === 0 ? (
           <div className='mt-4'>
             <EmptyState
@@ -96,16 +98,16 @@ const Wishlist = () => {
         ) : (
           <div className='mt-4 space-y-3'>
             {wishlistItems.map((item) => (
-              <article key={item.id} className='rounded-lg border border-gray-200 p-4'>
+              <article key={item.id} className='rounded-lg border border-border p-4'>
                 <div className='flex flex-wrap items-center justify-between gap-3'>
                   <div>
-                    <p className='font-semibold text-gray-900'>{item.product?.name || item.productId}</p>
-                    <p className='text-sm text-gray-600'>Size {item.size || 'N/A'}</p>
+                    <p className='font-semibold text-foreground'>{item.product?.name || item.productId}</p>
+                    <p className='text-sm text-muted'>Size {item.size || 'N/A'}</p>
                   </div>
                   <button
                     type='button'
                     onClick={() => removeWishlistItem(item.id)}
-                    className='rounded-md border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100'
+                    className='btn btn-outline px-3 py-1 text-xs text-muted'
                   >
                     Remove
                   </button>

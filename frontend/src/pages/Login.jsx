@@ -28,11 +28,11 @@ const Login = () => {
 
   if (user) {
     return (
-      <div className='mx-auto max-w-lg rounded-lg border border-gray-200 bg-white p-6 text-center'>
+      <div className='card mx-auto max-w-lg p-6 text-center'>
         <PageHeader title={`Welcome, ${user.name || 'Customer'}!`} subtitle={`Signed in as ${user.email}.`} />
         <button
           onClick={logout}
-          className='rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100'
+          className='btn btn-outline px-4 py-2 text-sm text-muted'
         >
           Logout
         </button>
@@ -41,7 +41,7 @@ const Login = () => {
   }
 
   return (
-    <div className='mx-auto max-w-lg rounded-lg border border-gray-200 bg-white p-6'>
+    <div className='card mx-auto max-w-lg p-6'>
       <PageHeader
         title={isRegister ? 'Create account' : 'Login'}
         subtitle={isRegister ? 'Register to track and manage your orders.' : 'Sign in to place and track orders.'}
@@ -51,8 +51,8 @@ const Login = () => {
         <button
           type='button'
           onClick={() => setMode('login')}
-          className={`flex-1 rounded-md border px-3 py-2 text-xs font-semibold uppercase tracking-wide ${
-            !isRegister ? 'border-black bg-black text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+          className={`flex-1 rounded-md border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition ${
+            !isRegister ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted hover:bg-accent'
           }`}
         >
           Login
@@ -60,15 +60,15 @@ const Login = () => {
         <button
           type='button'
           onClick={() => setMode('register')}
-          className={`flex-1 rounded-md border px-3 py-2 text-xs font-semibold uppercase tracking-wide ${
-            isRegister ? 'border-black bg-black text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+          className={`flex-1 rounded-md border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition ${
+            isRegister ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted hover:bg-accent'
           }`}
         >
           Register
         </button>
       </div>
 
-      <p className='mb-3 text-xs text-gray-500'>Fields marked with * are required.</p>
+      <p className='mb-3 text-xs text-muted'>Fields marked with * are required.</p>
 
       <form onSubmit={handleSubmit} className='space-y-3'>
         <input
@@ -76,7 +76,7 @@ const Login = () => {
           required={isRegister}
           onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
           placeholder={isRegister ? 'Full name *' : 'Name (optional)'}
-          className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+          className='input'
         />
         <input
           required
@@ -84,7 +84,7 @@ const Login = () => {
           value={form.email}
           onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
           placeholder='Email *'
-          className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+          className='input'
         />
         <input
           required
@@ -92,17 +92,17 @@ const Login = () => {
           value={form.password}
           onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
           placeholder='Password *'
-          className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+          className='input'
         />
 
-        <button type='submit' className='w-full rounded-md bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800'>
+        <button type='submit' className='btn btn-primary w-full px-4 py-3 text-sm'>
           {isRegister ? 'Create account' : 'Sign in'}
         </button>
 
         <button
           type='button'
           onClick={() => navigate(redirectTo, { replace: true })}
-          className='w-full rounded-md border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100'
+          className='btn btn-outline w-full px-4 py-3 text-sm text-muted'
         >
           Continue as guest
         </button>
@@ -110,12 +110,12 @@ const Login = () => {
         <button
           type='button'
           onClick={() => navigate('/account/password-reset')}
-          className='w-full rounded-md border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100'
+          className='btn btn-outline w-full px-4 py-3 text-sm text-muted'
         >
           Forgot password?
         </button>
 
-        {error ? <p className='text-sm text-red-600'>{error}</p> : null}
+        {error ? <p className='text-sm text-destructive'>{error}</p> : null}
       </form>
     </div>
   )

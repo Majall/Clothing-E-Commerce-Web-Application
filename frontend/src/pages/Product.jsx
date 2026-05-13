@@ -54,18 +54,18 @@ const Product = () => {
       )
     }
 
-    return (
-      <EmptyState
-        title='Product not found'
-        description='The product you are looking for does not exist.'
-        action={
-          <Link to='/collection' className='inline-block rounded-md bg-black px-4 py-2 text-sm text-white'>
-            Back to collection
-          </Link>
-        }
-      />
-    )
-  }
+      return (
+        <EmptyState
+          title='Product not found'
+          description='The product you are looking for does not exist.'
+          action={
+            <Link to='/collection' className='btn btn-primary inline-block px-4 py-2 text-sm'>
+              Back to collection
+            </Link>
+          }
+        />
+      )
+    }
 
   const handleAddToCart = () => {
     addToCart(product._id, selectedSizeValue, quantity, selectedColorValue)
@@ -81,7 +81,9 @@ const Product = () => {
           <img
             src={selectedImageValue}
             alt={product.name}
-            className='w-full rounded-2xl border border-slate-200 bg-white object-cover shadow-sm dark:border-slate-800 dark:bg-slate-900'
+            className='w-full rounded-2xl border border-border bg-card object-cover shadow-soft'
+            decoding='async'
+            fetchpriority='high'
           />
           {product.image.length > 1 ? (
             <div className='mt-3 grid grid-cols-4 gap-2'>
@@ -91,17 +93,23 @@ const Product = () => {
                   onClick={() => setSelectedImage(index)}
                   className={`overflow-hidden rounded-md border transition ${
                     selectedImage === index
-                      ? 'border-slate-900 dark:border-white'
-                      : 'border-slate-200 dark:border-slate-700'
+                      ? 'border-primary'
+                      : 'border-border'
                   }`}
                 >
-                  <img src={item} alt={`${product.name} view ${index + 1}`} className='h-20 w-full object-cover' />
+                  <img
+                    src={item}
+                    alt={`${product.name} view ${index + 1}`}
+                    className='h-20 w-full object-cover'
+                    loading='lazy'
+                    decoding='async'
+                  />
                 </button>
               ))}
             </div>
           ) : null}
           {product.video ? (
-            <div className='mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950'>
+            <div className='mt-4 overflow-hidden rounded-xl border border-border bg-accent'>
               <video controls className='h-60 w-full object-cover'>
                 <source src={product.video} type='video/mp4' />
               </video>
@@ -112,25 +120,25 @@ const Product = () => {
         <div>
           <PageHeader title={product.name} subtitle={product.description} />
           <div className='flex flex-wrap items-center gap-3'>
-            <p className='text-2xl font-bold text-slate-900 dark:text-white'>৳{product.price}</p>
-            <span className='rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-200'>
+            <p className='text-2xl font-semibold text-foreground'>৳{product.price}</p>
+            <span className='badge'>
               ⭐ {product.rating.toFixed(1)} ({product.reviewCount} reviews)
             </span>
           </div>
-          <p className='mt-2 text-sm text-slate-600 dark:text-slate-300'>
+          <p className='mt-2 text-sm text-muted'>
             Category: {product.category} • {product.subCategory}
           </p>
-          <div className='mt-4 flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400'>
-            <span className='rounded-full border border-slate-200 px-3 py-1 dark:border-slate-700'>
+          <div className='mt-4 flex flex-wrap gap-2 text-xs text-muted'>
+            <span className='rounded-full border border-border px-3 py-1'>
               Fabric: {product.fabric}
             </span>
-            <span className='rounded-full border border-slate-200 px-3 py-1 dark:border-slate-700'>
+            <span className='rounded-full border border-border px-3 py-1'>
               Style: {product.styleTags?.join(' / ')}
             </span>
           </div>
 
           <div className='mt-6'>
-            <p className='mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200'>Select size</p>
+            <p className='mb-2 text-sm font-semibold text-foreground'>Select size</p>
             <div className='flex flex-wrap gap-2'>
               {product.sizes.map((size) => (
                 <button
@@ -138,8 +146,8 @@ const Product = () => {
                   onClick={() => setSelectedSize(size)}
                   className={`rounded-md border px-4 py-2 text-sm transition ${
                     selectedSizeValue === size
-                      ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900'
-                      : 'border-slate-300 text-slate-700 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border text-foreground hover:border-primary/50'
                   }`}
                 >
                   {size}
@@ -149,14 +157,14 @@ const Product = () => {
             <button
               type='button'
               onClick={() => setShowSizeGuide(true)}
-              className='mt-2 text-xs font-semibold text-slate-500 underline underline-offset-4 dark:text-slate-400'
+              className='mt-2 text-xs font-semibold text-muted underline underline-offset-4'
             >
               Size guide
             </button>
           </div>
 
           <div className='mt-5'>
-            <p className='mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200'>Select color</p>
+            <p className='mb-2 text-sm font-semibold text-foreground'>Select color</p>
             <div className='flex flex-wrap gap-2'>
               {product.colors.map((color) => (
                 <button
@@ -164,8 +172,8 @@ const Product = () => {
                   onClick={() => setSelectedColor(color)}
                   className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
                     selectedColorValue === color
-                      ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900'
-                      : 'border-slate-300 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-200'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border text-muted hover:border-primary/50'
                   }`}
                 >
                   {color}
@@ -175,39 +183,41 @@ const Product = () => {
           </div>
 
           <div className='mt-5'>
-            <p className='mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200'>Quantity</p>
+            <p className='mb-2 text-sm font-semibold text-foreground'>Quantity</p>
             <QuantityInput value={quantity} onChange={setQuantity} />
           </div>
 
           <div className='mt-6 flex flex-wrap gap-3'>
             <button
               onClick={handleAddToCart}
-              className='rounded-md bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900'
+              className='btn btn-primary px-6 py-3 text-sm'
             >
               Add to cart
             </button>
             <button
               type='button'
               onClick={() => setShowTryOn((prev) => !prev)}
-              className='rounded-md border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+              className='btn btn-outline px-6 py-3 text-sm'
             >
               {showTryOn ? 'Hide virtual try-on' : 'Virtual try-on'}
             </button>
           </div>
 
-          {message ? <p className='mt-3 text-sm text-green-700 dark:text-green-400'>{message}</p> : null}
+          {message ? <p className='mt-3 text-sm text-success'>{message}</p> : null}
 
           {showTryOn ? (
-            <div className='mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950'>
-              <p className='text-sm font-semibold text-slate-800 dark:text-slate-200'>Virtual try-on preview</p>
-              <div className='relative mt-4 h-72 overflow-hidden rounded-xl bg-gradient-to-b from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900'>
-                <div className='absolute inset-0 flex items-center justify-center text-xs text-slate-500 dark:text-slate-400'>
+            <div className='mt-6 rounded-2xl border border-border bg-accent p-4'>
+              <p className='text-sm font-semibold text-foreground'>Virtual try-on preview</p>
+              <div className='relative mt-4 h-72 overflow-hidden rounded-xl bg-gradient-to-b from-accent to-background'>
+                <div className='absolute inset-0 flex items-center justify-center text-xs text-muted'>
                   Fit preview
                 </div>
                 <img
                   src={selectedImageValue}
                   alt='Virtual try-on overlay'
                   className='absolute inset-0 h-full w-full object-contain mix-blend-multiply opacity-80'
+                  loading='lazy'
+                  decoding='async'
                 />
               </div>
             </div>
@@ -215,19 +225,19 @@ const Product = () => {
         </div>
       </section>
 
-      <section className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+      <section className='card p-6'>
         <PageHeader title='Customer reviews' subtitle='What shoppers are saying about this product.' />
         <div className='space-y-4'>
           {product.reviews.map((review) => (
-            <div key={review.id} className='rounded-lg border border-slate-200 p-4 dark:border-slate-800'>
+            <div key={review.id} className='rounded-lg border border-border p-4'>
               <div className='flex items-center justify-between'>
                 <div>
-                  <p className='text-sm font-semibold text-slate-900 dark:text-white'>{review.title}</p>
-                  <p className='text-xs text-slate-500 dark:text-slate-400'>by {review.author}</p>
+                  <p className='text-sm font-semibold text-foreground'>{review.title}</p>
+                  <p className='text-xs text-muted'>by {review.author}</p>
                 </div>
-                <span className='text-xs font-semibold text-amber-600'>⭐ {review.rating.toFixed(1)}</span>
+                <span className='text-xs font-semibold text-warning'>⭐ {review.rating.toFixed(1)}</span>
               </div>
-              <p className='mt-2 text-sm text-slate-600 dark:text-slate-300'>{review.body}</p>
+              <p className='mt-2 text-sm text-muted'>{review.body}</p>
             </div>
           ))}
         </div>
@@ -244,13 +254,13 @@ const Product = () => {
       </section>
 
       {showSizeGuide ? (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
-          <div className='w-full max-w-md rounded-2xl bg-white p-6 dark:bg-slate-900'>
-            <h3 className='text-lg font-semibold text-slate-900 dark:text-white'>Size guide</h3>
-            <p className='mt-2 text-sm text-slate-600 dark:text-slate-300'>
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-overlay/60 p-4'>
+          <div className='w-full max-w-md rounded-2xl bg-card p-6 shadow-soft'>
+            <h3 className='text-lg font-semibold text-foreground'>Size guide</h3>
+            <p className='mt-2 text-sm text-muted'>
               Compare chest and waist measurements to pick the best fit.
             </p>
-            <div className='mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300'>
+            <div className='mt-4 space-y-2 text-sm text-muted'>
               <div className='flex justify-between'>
                 <span>Small</span>
                 <span>Chest 34-36"</span>
@@ -271,7 +281,7 @@ const Product = () => {
             <button
               type='button'
               onClick={() => setShowSizeGuide(false)}
-              className='mt-5 w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-900'
+              className='btn btn-primary mt-5 w-full px-4 py-2 text-sm'
             >
               Close
             </button>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import PageHeader from '../components/PageHeader'
 import ProductGrid from '../components/ProductGrid'
 import ProductGridSkeleton from '../components/ProductGridSkeleton'
@@ -14,14 +14,19 @@ const Collection = () => {
   const [selectedColors, setSelectedColors] = useState([])
   const [selectedStyles, setSelectedStyles] = useState([])
   const [selectedFabrics, setSelectedFabrics] = useState([])
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 0 })
+  const [priceRange, setPriceRange] = useState({ min: null, max: null })
   const [visualPreview, setVisualPreview] = useState('')
   const [visualResults, setVisualResults] = useState([])
   const [isVisualSearching, setIsVisualSearching] = useState(false)
 
-  useEffect(() => {
-    setPriceRange({ min: availableFilters.minPrice, max: availableFilters.maxPrice })
-  }, [availableFilters.minPrice, availableFilters.maxPrice])
+  const effectivePriceRange = useMemo(() => {
+    const min = priceRange.min ?? availableFilters.minPrice
+    const max = priceRange.max ?? availableFilters.maxPrice
+    return {
+      min: Math.min(Math.max(min, availableFilters.minPrice), availableFilters.maxPrice),
+      max: Math.max(Math.min(max, availableFilters.maxPrice), availableFilters.minPrice),
+    }
+  }, [availableFilters.maxPrice, availableFilters.minPrice, priceRange.max, priceRange.min])
 
   const categories = useMemo(() => ['All', ...new Set(products.map((item) => item.category))], [products])
   const subCategories = useMemo(
@@ -55,7 +60,7 @@ const Collection = () => {
         ? selectedStyles.some((style) => item.styleTags?.includes(style))
         : true
       const matchesFabrics = selectedFabrics.length ? selectedFabrics.includes(item.fabric) : true
-      const matchesPrice = item.price >= priceRange.min && item.price <= priceRange.max
+      const matchesPrice = item.price >= effectivePriceRange.min && item.price <= effectivePriceRange.max
       return matchesQuery && matchesCategory && matchesSubCategory && matchesColors && matchesStyles && matchesFabrics && matchesPrice
     })
 
@@ -79,7 +84,7 @@ const Collection = () => {
     selectedColors,
     selectedStyles,
     selectedFabrics,
-    priceRange,
+    effectivePriceRange,
   ])
 
   const handleVisualSearch = async (file) => {
@@ -109,15 +114,15 @@ const Collection = () => {
     <div className='space-y-8'>
       <PageHeader title='Collection' subtitle='Search, filter, and sort to find your perfect product.' />
 
-      <section className='grid gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[1.4fr_1fr] dark:border-slate-800 dark:bg-slate-900'>
+      <section className='card grid gap-6 p-5 shadow-soft lg:grid-cols-[1.4fr_1fr]'>
         <div>
-          <p className='text-sm font-semibold uppercase text-slate-500 dark:text-slate-400'>Visual search</p>
-          <h2 className='mt-2 text-xl font-semibold text-slate-900 dark:text-white'>Upload a look</h2>
-          <p className='mt-1 text-sm text-slate-600 dark:text-slate-300'>
+          <p className='text-xs font-semibold uppercase text-muted'>Visual search</p>
+          <h2 className='mt-2 text-xl font-semibold text-foreground'>Upload a look</h2>
+          <p className='mt-1 text-sm text-muted'>
             Drop an inspiration photo and we’ll pull similar pieces from the catalog.
           </p>
           <div className='mt-4 flex flex-wrap items-center gap-3'>
-            <label className='cursor-pointer rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900'>
+            <label className='btn btn-primary cursor-pointer px-4 py-2 text-xs'>
               Upload image
               <input
                 type='file'
@@ -126,16 +131,16 @@ const Collection = () => {
                 onChange={(event) => handleVisualSearch(event.target.files?.[0])}
               />
             </label>
-            <span className='text-xs text-slate-500 dark:text-slate-400'>
+            <span className='text-xs text-muted'>
               Supported: JPG, PNG • Up to 10 MB
             </span>
           </div>
         </div>
-        <div className='rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center dark:border-slate-700 dark:bg-slate-950'>
+        <div className='rounded-xl border border-dashed border-border bg-accent p-4 text-center'>
           {visualPreview ? (
             <img src={visualPreview} alt='Visual search preview' className='mx-auto max-h-48 rounded-lg object-cover' />
           ) : (
-            <p className='text-sm text-slate-500 dark:text-slate-400'>No image selected.</p>
+            <p className='text-sm text-muted'>No image selected.</p>
           )}
         </div>
       </section>
@@ -148,25 +153,25 @@ const Collection = () => {
       ) : null}
 
       <div className='grid gap-6 lg:grid-cols-[280px_1fr]'>
-        <aside className='space-y-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+        <aside className='space-y-6 rounded-2xl border border-border bg-card p-5 shadow-sm'>
           <div>
-            <p className='text-sm font-semibold text-slate-900 dark:text-white'>Search</p>
+            <p className='text-sm font-semibold text-foreground'>Search</p>
             <input
               type='search'
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder='Search by product name'
-              className='mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+              className='input mt-2'
               aria-label='Search products'
             />
           </div>
 
           <div>
-            <p className='text-sm font-semibold text-slate-900 dark:text-white'>Category</p>
+            <p className='text-sm font-semibold text-foreground'>Category</p>
             <select
               value={category}
               onChange={(event) => setCategory(event.target.value)}
-              className='mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+              className='input mt-2'
               aria-label='Filter by category'
             >
               {categories.map((item) => (
@@ -178,11 +183,11 @@ const Collection = () => {
           </div>
 
           <div>
-            <p className='text-sm font-semibold text-slate-900 dark:text-white'>Sub category</p>
+            <p className='text-sm font-semibold text-foreground'>Sub category</p>
             <select
               value={subCategory}
               onChange={(event) => setSubCategory(event.target.value)}
-              className='mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+              className='input mt-2'
               aria-label='Filter by sub category'
             >
               {subCategories.map((item) => (
@@ -194,7 +199,7 @@ const Collection = () => {
           </div>
 
           <div>
-            <p className='text-sm font-semibold text-slate-900 dark:text-white'>Colors</p>
+            <p className='text-sm font-semibold text-foreground'>Colors</p>
             <div className='mt-3 flex flex-wrap gap-2'>
               {availableFilters.colors.map((color) => (
                 <button
@@ -203,8 +208,8 @@ const Collection = () => {
                   onClick={() => toggleFilter(selectedColors, color, setSelectedColors)}
                   className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
                     selectedColors.includes(color)
-                      ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900'
-                      : 'border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-500'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border text-muted hover:border-primary/50'
                   }`}
                 >
                   {color}
@@ -214,7 +219,7 @@ const Collection = () => {
           </div>
 
           <div>
-            <p className='text-sm font-semibold text-slate-900 dark:text-white'>Style</p>
+            <p className='text-sm font-semibold text-foreground'>Style</p>
             <div className='mt-3 flex flex-wrap gap-2'>
               {availableFilters.styleTags.map((style) => (
                 <button
@@ -223,8 +228,8 @@ const Collection = () => {
                   onClick={() => toggleFilter(selectedStyles, style, setSelectedStyles)}
                   className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
                     selectedStyles.includes(style)
-                      ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900'
-                      : 'border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-500'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border text-muted hover:border-primary/50'
                   }`}
                 >
                   {style}
@@ -234,7 +239,7 @@ const Collection = () => {
           </div>
 
           <div>
-            <p className='text-sm font-semibold text-slate-900 dark:text-white'>Fabric</p>
+            <p className='text-sm font-semibold text-foreground'>Fabric</p>
             <div className='mt-3 flex flex-wrap gap-2'>
               {availableFilters.fabrics.map((fabric) => (
                 <button
@@ -243,8 +248,8 @@ const Collection = () => {
                   onClick={() => toggleFilter(selectedFabrics, fabric, setSelectedFabrics)}
                   className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
                     selectedFabrics.includes(fabric)
-                      ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900'
-                      : 'border-slate-200 text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-500'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border text-muted hover:border-primary/50'
                   }`}
                 >
                   {fabric}
@@ -255,9 +260,9 @@ const Collection = () => {
 
           <div>
             <div className='flex items-center justify-between'>
-              <p className='text-sm font-semibold text-slate-900 dark:text-white'>Price range</p>
-              <span className='text-xs text-slate-500 dark:text-slate-400'>
-                ৳{priceRange.min} - ৳{priceRange.max}
+              <p className='text-sm font-semibold text-foreground'>Price range</p>
+              <span className='text-xs text-muted'>
+                ৳{effectivePriceRange.min} - ৳{effectivePriceRange.max}
               </span>
             </div>
             <div className='mt-3 grid gap-2'>
@@ -265,11 +270,11 @@ const Collection = () => {
                 type='range'
                 min={availableFilters.minPrice}
                 max={availableFilters.maxPrice}
-                value={priceRange.min}
+                value={effectivePriceRange.min}
                 onChange={(event) =>
                   setPriceRange((prev) => {
                     const nextMin = Number(event.target.value)
-                    return { ...prev, min: Math.min(nextMin, prev.max) }
+                    return { ...prev, min: Math.min(nextMin, effectivePriceRange.max) }
                   })
                 }
               />
@@ -277,11 +282,11 @@ const Collection = () => {
                 type='range'
                 min={availableFilters.minPrice}
                 max={availableFilters.maxPrice}
-                value={priceRange.max}
+                value={effectivePriceRange.max}
                 onChange={(event) =>
                   setPriceRange((prev) => {
                     const nextMax = Number(event.target.value)
-                    return { ...prev, max: Math.max(nextMax, prev.min) }
+                    return { ...prev, max: Math.max(nextMax, effectivePriceRange.min) }
                   })
                 }
               />
@@ -289,11 +294,11 @@ const Collection = () => {
           </div>
 
           <div>
-            <p className='text-sm font-semibold text-slate-900 dark:text-white'>Sort by</p>
+            <p className='text-sm font-semibold text-foreground'>Sort by</p>
             <select
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
-              className='mt-2 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
+              className='input mt-2'
               aria-label='Sort products'
             >
               <option value='featured'>Featured</option>
@@ -313,9 +318,9 @@ const Collection = () => {
               setCategory('All')
               setSubCategory('All')
               setSortBy('featured')
-              setPriceRange({ min: availableFilters.minPrice, max: availableFilters.maxPrice })
+              setPriceRange({ min: null, max: null })
             }}
-            className='rounded-md border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+            className='btn btn-outline px-4 py-2 text-xs text-muted'
           >
             Clear filters
           </button>
@@ -327,7 +332,7 @@ const Collection = () => {
               {activeFilters.map((filter) => (
                 <span
                   key={`${filter.type}-${filter.value}`}
-                  className='rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-200'
+                  className='badge'
                 >
                   {filter.type}: {filter.value}
                 </span>
