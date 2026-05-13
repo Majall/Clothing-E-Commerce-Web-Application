@@ -16,7 +16,7 @@ const Home = () => {
       <Hero />
 
       {error ? (
-        <p className='rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-900 dark:border-amber-700/50 dark:bg-amber-900/30 dark:text-amber-100'>
+        <p className='rounded-md border border-warning/30 bg-warning/10 p-3 text-warning'>
           {error}
         </p>
       ) : null}
@@ -31,7 +31,7 @@ const Home = () => {
         {isLoading ? <ProductGridSkeleton count={8} /> : <ProductGrid products={trending} />}
       </section>
 
-      <section className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+      <section className='card p-6'>
         <PageHeader title='AI Recommendations' subtitle='Curated looks based on your browsing history.' />
         {isLoading ? <ProductGridSkeleton count={4} /> : <ProductGrid products={recommendations} />}
       </section>

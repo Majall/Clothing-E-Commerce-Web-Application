@@ -76,8 +76,8 @@ const Addresses = () => {
       title='Address book'
       subtitle='Save multiple addresses and choose a default for checkout.'
     >
-      <section className='rounded-lg border border-gray-200 bg-white p-5'>
-        <h2 className='text-lg font-semibold text-gray-900'>Saved addresses</h2>
+      <section className='card p-5'>
+        <h2 className='text-lg font-semibold text-foreground'>Saved addresses</h2>
         {addresses.length === 0 ? (
           <div className='mt-4'>
             <EmptyState
@@ -88,11 +88,11 @@ const Addresses = () => {
         ) : (
           <div className='mt-4 space-y-3'>
             {addresses.map((address) => (
-              <article key={address.id} className='rounded-lg border border-gray-200 p-4 text-sm'>
+              <article key={address.id} className='rounded-lg border border-border p-4 text-sm text-muted'>
                 <div className='flex flex-wrap items-start justify-between gap-2'>
                   <div>
-                    <p className='font-semibold text-gray-900'>{address.fullName}</p>
-                    {address.label ? <p className='text-xs text-gray-500'>{address.label}</p> : null}
+                    <p className='font-semibold text-foreground'>{address.fullName}</p>
+                    {address.label ? <p className='text-xs text-muted'>{address.label}</p> : null}
                     <p className='mt-2'>
                       {address.line1}
                       {address.line2 ? `, ${address.line2}` : ''}
@@ -106,7 +106,7 @@ const Addresses = () => {
                   </div>
                   <div className='flex flex-col items-end gap-2'>
                     {address.isDefault ? (
-                      <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700'>
+                      <span className='badge badge-success'>
                         Default
                       </span>
                     ) : null}
@@ -114,14 +114,14 @@ const Addresses = () => {
                       <button
                         type='button'
                         onClick={() => handleEdit(address)}
-                        className='rounded-md border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100'
+                        className='btn btn-outline px-3 py-1 text-xs text-muted'
                       >
                         Edit
                       </button>
                       <button
                         type='button'
                         onClick={() => handleDelete(address.id)}
-                        className='rounded-md border border-red-200 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50'
+                        className='btn btn-destructive px-3 py-1 text-xs'
                       >
                         Delete
                       </button>
@@ -134,8 +134,8 @@ const Addresses = () => {
         )}
       </section>
 
-      <section className='rounded-lg border border-gray-200 bg-white p-5'>
-        <h2 className='text-lg font-semibold text-gray-900'>
+      <section className='card p-5'>
+        <h2 className='text-lg font-semibold text-foreground'>
           {editingId ? 'Edit address' : 'Add a new address'}
         </h2>
         <form onSubmit={handleSubmit} className='mt-4 grid gap-3 md:grid-cols-2'>
@@ -143,62 +143,62 @@ const Addresses = () => {
             value={form.label}
             onChange={(event) => updateField('label', event.target.value)}
             placeholder='Label (Home, Office)'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
             value={form.fullName}
             onChange={(event) => updateField('fullName', event.target.value)}
             placeholder='Full name'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             value={form.phone}
             onChange={(event) => updateField('phone', event.target.value)}
             placeholder='Phone'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
             value={form.line1}
             onChange={(event) => updateField('line1', event.target.value)}
             placeholder='Address line 1'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             value={form.line2}
             onChange={(event) => updateField('line2', event.target.value)}
             placeholder='Address line 2'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
             value={form.city}
             onChange={(event) => updateField('city', event.target.value)}
             placeholder='City'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             value={form.state}
             onChange={(event) => updateField('state', event.target.value)}
             placeholder='State / Province'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
             value={form.postalCode}
             onChange={(event) => updateField('postalCode', event.target.value)}
             placeholder='Postal code'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
             value={form.country}
             onChange={(event) => updateField('country', event.target.value)}
             placeholder='Country'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
-          <label className='flex items-center gap-2 text-sm text-gray-600 md:col-span-2'>
+          <label className='flex items-center gap-2 text-sm text-muted md:col-span-2'>
             <input
               type='checkbox'
               checked={form.isDefault}
@@ -209,7 +209,7 @@ const Addresses = () => {
           <div className='flex flex-wrap gap-2 md:col-span-2'>
             <button
               type='submit'
-              className='rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800'
+              className='btn btn-primary px-4 py-2 text-sm'
             >
               {editingId ? 'Update address' : 'Save address'}
             </button>
@@ -217,14 +217,16 @@ const Addresses = () => {
               <button
                 type='button'
                 onClick={resetForm}
-                className='rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100'
+                className='btn btn-outline px-4 py-2 text-sm text-muted'
               >
                 Cancel
               </button>
             ) : null}
           </div>
           {status.message ? (
-            <p className={`text-sm md:col-span-2 ${status.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
+            <p
+              className={`text-sm md:col-span-2 ${status.type === 'success' ? 'text-success' : 'text-destructive'}`}
+            >
               {status.message}
             </p>
           ) : null}

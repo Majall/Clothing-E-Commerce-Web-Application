@@ -50,8 +50,8 @@ const PaymentMethods = () => {
 
   return (
     <AccountLayout title='Payment methods' subtitle='Save payment methods for faster checkout.'>
-      <section className='rounded-lg border border-gray-200 bg-white p-5'>
-        <h2 className='text-lg font-semibold text-gray-900'>Saved payment methods</h2>
+      <section className='card p-5'>
+        <h2 className='text-lg font-semibold text-foreground'>Saved payment methods</h2>
         {paymentMethods.length === 0 ? (
           <div className='mt-4'>
             <EmptyState
@@ -62,27 +62,27 @@ const PaymentMethods = () => {
         ) : (
           <div className='mt-4 space-y-3'>
             {paymentMethods.map((method) => (
-              <article key={method.id} className='rounded-lg border border-gray-200 p-4 text-sm'>
+              <article key={method.id} className='rounded-lg border border-border p-4 text-sm'>
                 <div className='flex flex-wrap items-center justify-between gap-3'>
                   <div>
-                    <p className='font-semibold text-gray-900'>
+                    <p className='font-semibold text-foreground'>
                       {method.brand} •••• {method.lastFour}
                     </p>
-                    <p className='text-gray-600'>
+                    <p className='text-muted'>
                       Expires {method.expiryMonth}/{method.expiryYear}
                     </p>
-                    {method.label ? <p className='text-xs text-gray-500'>{method.label}</p> : null}
+                    {method.label ? <p className='text-xs text-muted'>{method.label}</p> : null}
                   </div>
                   <div className='flex items-center gap-2'>
                     {method.isDefault ? (
-                      <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700'>
+                      <span className='badge badge-success'>
                         Default
                       </span>
                     ) : null}
                     <button
                       type='button'
                       onClick={() => removePaymentMethod(method.id)}
-                      className='rounded-md border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100'
+                      className='btn btn-outline px-3 py-1 text-xs text-muted'
                     >
                       Remove
                     </button>
@@ -94,21 +94,21 @@ const PaymentMethods = () => {
         )}
       </section>
 
-      <section className='rounded-lg border border-gray-200 bg-white p-5'>
-        <h2 className='text-lg font-semibold text-gray-900'>Add payment method</h2>
+      <section className='card p-5'>
+        <h2 className='text-lg font-semibold text-foreground'>Add payment method</h2>
         <form onSubmit={handleSubmit} className='mt-4 grid gap-3 md:grid-cols-2'>
           <input
             value={form.label}
             onChange={(event) => updateField('label', event.target.value)}
             placeholder='Label (Personal card)'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
             value={form.brand}
             onChange={(event) => updateField('brand', event.target.value)}
             placeholder='Brand (Visa, MasterCard)'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
@@ -116,23 +116,23 @@ const PaymentMethods = () => {
             onChange={(event) => updateField('lastFour', event.target.value)}
             placeholder='Last four digits'
             maxLength={4}
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
             value={form.expiryMonth}
             onChange={(event) => updateField('expiryMonth', event.target.value)}
             placeholder='Expiry month (MM)'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
           <input
             required
             value={form.expiryYear}
             onChange={(event) => updateField('expiryYear', event.target.value)}
             placeholder='Expiry year (YYYY)'
-            className='rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none'
+            className='input'
           />
-          <label className='flex items-center gap-2 text-sm text-gray-600 md:col-span-2'>
+          <label className='flex items-center gap-2 text-sm text-muted md:col-span-2'>
             <input
               type='checkbox'
               checked={form.isDefault}
@@ -142,12 +142,14 @@ const PaymentMethods = () => {
           </label>
           <button
             type='submit'
-            className='rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 md:col-span-2'
+            className='btn btn-primary px-4 py-2 text-sm md:col-span-2'
           >
             Save payment method
           </button>
           {status.message ? (
-            <p className={`text-sm md:col-span-2 ${status.type === 'success' ? 'text-green-700' : 'text-red-600'}`}>
+            <p
+              className={`text-sm md:col-span-2 ${status.type === 'success' ? 'text-success' : 'text-destructive'}`}
+            >
               {status.message}
             </p>
           ) : null}

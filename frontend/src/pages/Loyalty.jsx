@@ -18,10 +18,10 @@ const Loyalty = () => {
 
   return (
     <AccountLayout title='Loyalty points' subtitle='Track your rewards balance.'>
-      <section className='rounded-lg border border-gray-200 bg-white p-5'>
-        <h2 className='text-lg font-semibold text-gray-900'>Available points</h2>
-        <p className='mt-2 text-sm text-gray-600'>Redeem points during checkout.</p>
-        <p className='mt-4 text-3xl font-semibold text-gray-900'>{loyaltyPoints}</p>
+      <section className='card p-5'>
+        <h2 className='text-lg font-semibold text-foreground'>Available points</h2>
+        <p className='mt-2 text-sm text-muted'>Redeem points during checkout.</p>
+        <p className='mt-4 text-3xl font-semibold text-foreground'>{loyaltyPoints}</p>
       </section>
     </AccountLayout>
   )
