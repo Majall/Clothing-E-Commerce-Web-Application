@@ -17,7 +17,7 @@ const applyTheme = (nextTheme) => {
 }
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(getInitialTheme)
+  const [theme, setTheme] = useState(() => getInitialTheme())
 
   useEffect(() => {
     applyTheme(theme)

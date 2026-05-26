@@ -3,7 +3,7 @@ import { assets } from '../assets/frontend_assets/assets'
 
 const Hero = () => {
   return (
-    <section className='card grid items-center gap-6 p-6 shadow-soft md:grid-cols-2 md:p-10'>
+    <section className='grid items-center gap-6 py-6 md:grid-cols-2 md:py-10'>
       <div>
         <p className='text-xs font-semibold uppercase tracking-[0.3em] text-muted'>New arrivals</p>
         <h1 className='mt-3 text-3xl font-semibold text-foreground md:text-5xl'>Shop styles you love</h1>

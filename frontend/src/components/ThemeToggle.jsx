@@ -8,11 +8,10 @@ const ThemeToggle = () => {
     <button
       type='button'
       onClick={toggleTheme}
-      className='btn btn-outline rounded-full bg-card/80 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted shadow-sm backdrop-blur hover:bg-accent'
+      className='rounded-md p-2 text-muted transition hover:bg-accent hover:text-foreground'
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
-      <span className='text-sm'>{isDark ? '🌙' : '☀️'}</span>
-      {isDark ? 'Dark' : 'Light'}
+      <span className='text-base'>{isDark ? '🌙' : '☀️'}</span>
     </button>
   )
 }

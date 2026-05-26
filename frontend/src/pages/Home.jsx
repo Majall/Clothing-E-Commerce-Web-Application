@@ -31,7 +31,7 @@ const Home = () => {
         {isLoading ? <ProductGridSkeleton count={8} /> : <ProductGrid products={trending} />}
       </section>
 
-      <section className='card p-6'>
+      <section>
         <PageHeader title='AI Recommendations' subtitle='Curated looks based on your browsing history.' />
         {isLoading ? <ProductGridSkeleton count={4} /> : <ProductGrid products={recommendations} />}
       </section>
