@@ -3,6 +3,7 @@ import AccountLayout from '../components/AccountLayout'
 import EmptyState from '../components/EmptyState'
 import Skeleton from '../components/Skeleton'
 import { useShop } from '../context/useShop'
+import { downloadInvoice } from '../utils/invoiceGenerator'
 
 const Order = () => {
   const { orders, ordersLoading, ordersError } = useShop()
@@ -49,9 +50,18 @@ const Order = () => {
                     {new Date(order.createdAt).toLocaleString()} • {order.items.length} item(s)
                   </p>
                 </div>
-                <span className='badge badge-success'>
-                  {order.status}
-                </span>
+                <div className='flex items-center gap-2'>
+                  <span className='badge badge-success'>
+                    {order.status}
+                  </span>
+                  <button
+                    type='button'
+                    onClick={() => downloadInvoice(order)}
+                    className='btn btn-outline px-3 py-1 text-xs font-semibold'
+                  >
+                    Download Invoice
+                  </button>
+                </div>
               </div>
 
               <div className='mt-4 space-y-2 text-sm text-muted'>

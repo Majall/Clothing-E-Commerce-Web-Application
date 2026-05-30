@@ -65,6 +65,8 @@ export const enhanceProduct = (product) => {
       ? 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4'
       : null)
 
+  const inStock = product.inStock ?? variants.some((v) => v.stock > 0)
+
   return {
     ...product,
     colors,
@@ -76,5 +78,6 @@ export const enhanceProduct = (product) => {
     reviews: product.reviews?.length ? product.reviews : generateReviews(seed, reviewCount, rating),
     variants,
     video,
+    inStock,
   }
 }

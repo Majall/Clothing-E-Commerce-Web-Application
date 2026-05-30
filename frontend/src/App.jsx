@@ -22,6 +22,7 @@ const PlaceOrder = lazy(() => import('./pages/PlaceOrder'))
 const Product = lazy(() => import('./pages/Product'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Wishlist = lazy(() => import('./pages/Wishlist'))
+const WishlistShare = lazy(() => import('./pages/WishlistShare'))
 
 const App = () => {
   return (
@@ -76,6 +77,7 @@ const App = () => {
                 </CheckoutGuard>
               }
             />
+            <Route path='/wishlist/share' element={<WishlistShare />} />
             <Route
               path='/account/payment-methods'
               element={

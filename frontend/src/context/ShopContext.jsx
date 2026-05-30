@@ -194,6 +194,48 @@ export const ShopProvider = ({ children }) => {
     }
   }, [products])
 
+  useEffect(() => {
+    if (!products.length || !wishlistItems.length) return
+
+    const newNotifications = []
+    const updatedItems = wishlistItems.map((item) => {
+      const current = products.find((p) => p._id === item.productId)
+      if (!current) return item
+
+      let updated = { ...item }
+
+      if (item.notifyPriceDrop && item.priceWhenAdded && current.price < item.priceWhenAdded) {
+        const drop = item.priceWhenAdded - current.price
+        newNotifications.push({
+          id: `notif-pricedrop-${item.id}-${Date.now()}`,
+          title: 'Price drop on your wishlist item!',
+          body: `${current.name} dropped from ৳${item.priceWhenAdded} to ৳${current.price} (save ৳${drop}).`,
+          createdAt: new Date().toISOString(),
+          type: 'price_drop',
+        })
+        updated = { ...updated, notifyPriceDrop: false, priceWhenAdded: current.price }
+      }
+
+      if (item.notifyBackInStock && item.inStockWhenAdded === false && current.inStock === true) {
+        newNotifications.push({
+          id: `notif-restock-${item.id}-${Date.now()}`,
+          title: 'Back in stock!',
+          body: `${current.name} (Size ${item.size}) is now available again.`,
+          createdAt: new Date().toISOString(),
+          type: 'back_in_stock',
+        })
+        updated = { ...updated, notifyBackInStock: false, inStockWhenAdded: true }
+      }
+
+      return updated
+    })
+
+    if (newNotifications.length) {
+      setNotifications((prev) => [...newNotifications, ...prev])
+      setWishlistItems(updatedItems)
+    }
+  }, [products]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const recordProductView = (productId) => {
     if (!productId) return
     setRecentlyViewed((prev) => {
@@ -454,7 +496,7 @@ export const ShopProvider = ({ children }) => {
     }
   }, [hasApiSession])
 
-  const addWishlistItem = async ({ productId, size }) => {
+  const addWishlistItem = async ({ productId, size, notifyPriceDrop = false, notifyBackInStock = false }) => {
     if (!featureFlags.wishlist) return { ok: false, message: 'Wishlist is disabled.' }
 
     if (hasApiSession) {
@@ -478,10 +520,24 @@ export const ShopProvider = ({ children }) => {
       productId,
       size,
       product,
+      priceWhenAdded: product.price,
+      inStockWhenAdded: product.inStock,
+      notifyPriceDrop,
+      notifyBackInStock,
       createdAt: new Date().toISOString(),
     }
     setWishlistItems((prev) => [item, ...prev])
     return { ok: true, item }
+  }
+
+  const updateWishlistAlerts = (id, { notifyPriceDrop, notifyBackInStock }) => {
+    setWishlistItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, notifyPriceDrop: notifyPriceDrop ?? item.notifyPriceDrop, notifyBackInStock: notifyBackInStock ?? item.notifyBackInStock }
+          : item,
+      ),
+    )
   }
 
   const removeWishlistItem = async (id) => {
@@ -634,6 +690,27 @@ export const ShopProvider = ({ children }) => {
     const signedUser = payload || { name: name || 'Customer', email }
     setUser(signedUser)
     return signedUser
+  }
+
+  const loginWithSocial = async (provider) => {
+    if (api.isEnabled) {
+      try {
+        const payload = await api.loginSocial({ provider })
+        if (payload) {
+          setUser(payload)
+          return payload
+        }
+      } catch {
+        // fall through to demo mode
+      }
+    }
+    const demoUser = {
+      name: provider === 'google' ? 'Google User' : 'Facebook User',
+      email: `${provider}-demo@example.com`,
+      provider,
+    }
+    setUser(demoUser)
+    return demoUser
   }
 
   const logout = () => {
@@ -800,6 +877,7 @@ export const ShopProvider = ({ children }) => {
     applyCoupon,
     removeCoupon,
     login,
+    loginWithSocial,
     logout,
     placeOrder,
     refreshProfile,
@@ -816,6 +894,7 @@ export const ShopProvider = ({ children }) => {
     wishlistItems,
     addWishlistItem,
     removeWishlistItem,
+    updateWishlistAlerts,
     paymentMethods,
     addPaymentMethod,
     removePaymentMethod,

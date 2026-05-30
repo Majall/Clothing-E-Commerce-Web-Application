@@ -92,6 +92,13 @@ export const api = {
     })
     return data?.user || null
   },
+  async loginSocial(payload) {
+    const data = await request('/auth/social', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    return data?.user || null
+  },
   async requestPasswordReset(payload) {
     const data = await request('/auth/password/forgot', {
       method: 'POST',
